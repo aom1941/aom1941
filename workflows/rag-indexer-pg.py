@@ -88,7 +88,7 @@ def _ensure_schema(cur, table: str) -> None:
             created       TEXT,
             content       TEXT,
             content_hash  TEXT,
-            embedding     vector(768),
+            embedding     vector(1024),
             indexed_at    TEXT
         );
     """)
