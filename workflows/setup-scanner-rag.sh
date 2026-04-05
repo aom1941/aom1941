@@ -312,7 +312,9 @@ fingerprints:
     pattern: '\b\d{2,3}[/\s]?\d{3}[/\s]?\d{4,5}\b'
     confidence: medium
 
-  # Deutsche Steuer-ID (11 Ziffern)
+  # Deutsche Steuer-ID (11 Ziffern, hohe Falsch-Positiv-Rate)
+  # Hinweis: Matcht jede 11-stellige Zahl. In der Praxis sollten
+  # Ergebnisse manuell geprüft oder mit Prüfzifferlogik validiert werden.
   - name: "DE-SteuerID"
     pattern: '\b\d{11}\b'
     confidence: low

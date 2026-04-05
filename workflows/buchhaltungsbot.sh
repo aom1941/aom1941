@@ -51,6 +51,7 @@ source "$SCRIPT_DIR/cloudflare-tunnel-helper.sh"
 
 # ── Logging ──────────────────────────────────────────────────
 bot_log() { printf '[BOT %s] %s\n' "$(date -Iseconds)" "$*" | tee -a "$LOG_FILE" 2>/dev/null || printf '[BOT %s] %s\n' "$(date -Iseconds)" "$*"; }
+bot_log_pipe() { local tag="${1:-}"; while IFS= read -r line; do bot_log "  $tag $line"; done; }
 
 # ── A) Buchhaltungs-Aufgaben ─────────────────────────────────
 
@@ -80,9 +81,7 @@ update_rag_index() {
     PAPERLESS_TOKEN="$PAPERLESS_TOKEN" \
     OLLAMA_URL="$OLLAMA_URL" \
     CHROMA_URL="$CHROMA_URL" \
-    python3 "$indexer" 2>&1 | while IFS= read -r line; do
-      bot_log "  [RAG] $line"
-    done
+    python3 "$indexer" 2>&1 | bot_log_pipe "[RAG]"
   else
     bot_log "RAG-Indexer nicht gefunden, überspringe"
   fi
@@ -193,16 +192,12 @@ run_hawk_eye_scan() {
       --fingerprint "$fingerprint_file" \
       --stdout --quiet 2>/dev/null \
       | tee "$results_dir/scan_${timestamp}.json" \
-      | while IFS= read -r line; do
-          bot_log "  [HAWK] $line"
-        done
+      | bot_log_pipe "[HAWK]"
     return 0
   fi
 
   PROJECT_DIR="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}" \
-    bash "$scan_script" 2>&1 | while IFS= read -r line; do
-      bot_log "  [HAWK] $line"
-    done
+    bash "$scan_script" 2>&1 | bot_log_pipe "[HAWK]"
   bot_log "Hawk Eye PII-Scan abgeschlossen"
 }
 
