@@ -199,7 +199,7 @@ def main():
         sys.exit(1)
 
     # ChromaDB-Client
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urlunparse
     from requests.auth import HTTPBasicAuth
     _parsed = urlparse(CHROMA_URL)
     chroma = chromadb.HttpClient(host=_parsed.hostname or "localhost",
@@ -207,8 +207,6 @@ def main():
     collection = chroma.get_or_create_collection(name=COLLECTION_NAME)
 
     # OLLAMA Basic Auth aus URL extrahieren (http://user:pass@host/path)
-    from urllib.parse import urlparse, urlunparse
-    from requests.auth import HTTPBasicAuth
     _ollama_parsed = urlparse(OLLAMA_URL)
     _ollama_auth = None
     if _ollama_parsed.username:

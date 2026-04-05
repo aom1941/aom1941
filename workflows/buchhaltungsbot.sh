@@ -52,19 +52,19 @@ source "$SCRIPT_DIR/cloudflare-tunnel-helper.sh"
 # ── OLLAMA Basic-Auth aus URL extrahieren ────────────────────
 # Unterstützt: http://user:pass@host:port/path
 _parse_ollama_url() {
-  OLLAMA_CURL_AUTH=""
+  OLLAMA_USER_PASS=""
   OLLAMA_URL_CLEAN="$OLLAMA_URL"
   if [[ "$OLLAMA_URL" =~ ^(https?://)([^:@/]+):([^@/]+)@(.+)$ ]]; then
-    OLLAMA_CURL_AUTH="${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
+    OLLAMA_USER_PASS="${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
     OLLAMA_URL_CLEAN="${BASH_REMATCH[1]}${BASH_REMATCH[4]}"
   elif [[ "$OLLAMA_URL" =~ ^(https?://)([^@/]+)@(.+)$ ]]; then
-    OLLAMA_CURL_AUTH="${BASH_REMATCH[2]}"
+    OLLAMA_USER_PASS="${BASH_REMATCH[2]}"
     OLLAMA_URL_CLEAN="${BASH_REMATCH[1]}${BASH_REMATCH[3]}"
   fi
   # Array für sicheres Übergeben an curl (kein Word-Splitting bei Sonderzeichen)
   OLLAMA_CURL_FLAGS=()
-  if [ -n "$OLLAMA_CURL_AUTH" ]; then
-    OLLAMA_CURL_FLAGS=(--user "$OLLAMA_CURL_AUTH")
+  if [ -n "$OLLAMA_USER_PASS" ]; then
+    OLLAMA_CURL_FLAGS=(--user "$OLLAMA_USER_PASS")
   fi
 }
 _parse_ollama_url
