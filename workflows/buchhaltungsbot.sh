@@ -42,6 +42,14 @@ OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
 CHROMA_URL="${CHROMA_URL:-http://localhost:8100}"
 OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2:3b}"
 
+# PostgreSQL/pgvector (für rag-indexer-pg.py)
+PG_HOST="${PG_HOST:-localhost}"
+PG_PORT="${PG_PORT:-5432}"
+PG_DB="${PG_DB:-paperless}"
+PG_USER="${PG_USER:-paperless}"
+PG_PASS="${PG_PASS:-paperless}"
+PG_TABLE="${PG_TABLE:-aom_rag_documents}"
+
 # Health-Endpoint für den Bot selbst
 BOT_HEALTH_PORT="${BOT_HEALTH_PORT:-8077}"
 
@@ -89,19 +97,53 @@ check_new_documents() {
 }
 
 # RAG-Index aktualisieren
+# Bevorzugt rag-indexer-pg.py (PostgreSQL/pgvector); fällt auf rag-indexer.py (ChromaDB) zurück.
 update_rag_index() {
   bot_log "Aktualisiere RAG-Index …"
-  local indexer="$SCRIPT_DIR/../scripts/rag-indexer.py"
-  [ -f "$indexer" ] && indexer="$indexer"
-  # Fallback: im Projektverzeichnis suchen
-  [ -f "$indexer" ] || indexer="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}/scripts/rag-indexer.py"
 
-  if [ -f "$indexer" ]; then
+  local project_scripts="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}/scripts"
+  local indexer_pg=""
+  local indexer_chroma=""
+
+  # rag-indexer-pg.py suchen (direkt neben diesem Skript oder im Projektverzeichnis)
+  for candidate in \
+      "$SCRIPT_DIR/rag-indexer-pg.py" \
+      "$project_scripts/rag-indexer-pg.py"; do
+    if [ -f "$candidate" ]; then
+      indexer_pg="$candidate"
+      break
+    fi
+  done
+
+  # rag-indexer.py (ChromaDB) als Fallback suchen
+  for candidate in \
+      "$SCRIPT_DIR/../scripts/rag-indexer.py" \
+      "$project_scripts/rag-indexer.py"; do
+    if [ -f "$candidate" ]; then
+      indexer_chroma="$candidate"
+      break
+    fi
+  done
+
+  if [ -n "$indexer_pg" ]; then
+    bot_log "Verwende PostgreSQL/pgvector RAG-Indexer: $indexer_pg"
+    PAPERLESS_URL="$PAPERLESS_URL" \
+    PAPERLESS_TOKEN="$PAPERLESS_TOKEN" \
+    OLLAMA_URL="$OLLAMA_URL" \
+    PG_HOST="$PG_HOST" \
+    PG_PORT="$PG_PORT" \
+    PG_DB="$PG_DB" \
+    PG_USER="$PG_USER" \
+    PG_PASS="$PG_PASS" \
+    PG_TABLE="$PG_TABLE" \
+    python3 "$indexer_pg" 2>&1 | bot_log_pipe "[RAG-PG]"
+  elif [ -n "$indexer_chroma" ]; then
+    bot_log "Verwende ChromaDB RAG-Indexer: $indexer_chroma"
     PAPERLESS_URL="$PAPERLESS_URL" \
     PAPERLESS_TOKEN="$PAPERLESS_TOKEN" \
     OLLAMA_URL="$OLLAMA_URL" \
     CHROMA_URL="$CHROMA_URL" \
-    python3 "$indexer" 2>&1 | bot_log_pipe "[RAG]"
+    python3 "$indexer_chroma" 2>&1 | bot_log_pipe "[RAG]"
   else
     bot_log "RAG-Indexer nicht gefunden, überspringe"
   fi
@@ -359,6 +401,12 @@ Umgebungsvariablen:
   OLLAMA_URL           Ollama URL                      (default: http://localhost:11434)
   OLLAMA_MODEL         LLM-Modell                      (default: llama3.2:3b)
   CHROMA_URL           ChromaDB URL                    (default: http://localhost:8100)
+  PG_HOST              PostgreSQL Host (pgvector)      (default: localhost)
+  PG_PORT              PostgreSQL Port (pgvector)      (default: 5432)
+  PG_DB                PostgreSQL Datenbank            (default: paperless)
+  PG_USER              PostgreSQL Benutzer             (default: paperless)
+  PG_PASS              PostgreSQL Passwort             (default: paperless)
+  PG_TABLE             pgvector Tabelle                (default: aom_rag_documents)
   BOT_HEALTH_PORT      Health-Endpoint Port            (default: 8077)
   LOG_FILE             Log-Datei                       (default: /var/log/aom-buchhaltungsbot.log)
   PID_FILE             PID-Datei                       (default: /tmp/aom-buchhaltungsbot.pid)
