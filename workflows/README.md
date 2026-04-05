@@ -1,11 +1,12 @@
-# workflows/ — Rechnungs-/Skizzenscanner + RAG + Buchhaltungsbot
+# workflows/ — Rechnungs-/Skizzenscanner + RAG + Hawk Eye + Buchhaltungsbot
 
 > Sicherheitsgegner Nr. 1 = Alltag → automatisieren.
 
 Dieses Verzeichnis enthält die Workflow-Skripte für den CachyOS Self-Hosted Stack.
 Kernidee: Während dem Aufsetzen des Rechnungs- und Skizzenscanners mit RAG werden
 die Cloudflare-Tunnel **parallel** gelegt — und ein kleiner Buchhaltungsbot übernimmt
-danach das lästige Cloudflare-Gedöns gleich mit.
+danach das lästige Cloudflare-Gedöns gleich mit. **Hawk Eye OCR** scannt dabei alle
+Dokumente automatisch auf PII/Sensitivdaten (DSGVO).
 
 ---
 
@@ -33,15 +34,19 @@ danach das lästige Cloudflare-Gedöns gleich mit.
 │         │              │                  │               │
 │         └──────────────┼──────────────────┘               │
 │                        │                                  │
-│              ┌─────────┴──────────┐                       │
-│              │  Buchhaltungsbot   │                       │
-│              │    :8077 (health)  │                       │
-│              │                    │                       │
-│              │  📄 Rechnungen     │                       │
-│              │  🔍 RAG-Index      │                       │
-│              │  🤖 LLM-Zusammenf. │                       │
-│              │  🔒 CF-Tunnel      │                       │
-│              └─────────┬──────────┘                       │
+│  ┌─────────────────────┴───────────────────────────┐      │
+│  │              Buchhaltungsbot :8077               │      │
+│  │                                                  │      │
+│  │  📄 Rechnungen        🔒 CF-Tunnel               │      │
+│  │  🔍 RAG-Index          🤖 LLM-Zusammenfassung    │      │
+│  │  🦅 Hawk Eye PII-Scan (DSGVO)                   │      │
+│  └─────────────────────┬───────────────────────────┘      │
+│                        │                                  │
+│  ┌─────────────────────┴──────────┐                       │
+│  │  🦅 Hawk Eye OCR               │                       │
+│  │  PII-/Sensitivdaten-Scanner   │                       │
+│  │  (IBAN, StNr, USt-ID, E-Mail) │                       │
+│  └────────────────────────────────┘                       │
 │                        │                                  │
 │              ┌─────────┴──────────┐                       │
 │              │  Cloudflare Tunnel │                       │
@@ -122,22 +127,34 @@ Sicherheitsgegner Nr. 1.
 | PostgreSQL | 5432 | Paperless-Datenbank |
 | Redis | 6379 | Paperless-Queue |
 | Bot Health | 8077 | Buchhaltungsbot Health-Endpoint |
+| Hawk Eye | CLI | PII-/Sensitivdaten-Scanner (OCR, DSGVO) |
 
 ---
 
-## RAG-Pipeline
+## RAG-Pipeline + Hawk Eye
 
 ```
 Dokument → Paperless-ngx (OCR) → rag-indexer.py → Ollama Embedding → ChromaDB
-                                                       ↓
-                                              Buchhaltungsbot
-                                                       ↓
-                                              LLM-Zusammenfassung
+                │                                        ↓
+                │                               Buchhaltungsbot
+                │                                        ↓
+                │                               LLM-Zusammenfassung
+                │
+                └──→ 🦅 Hawk Eye OCR ──→ PII-Report (DSGVO)
+                     (IBAN, StNr, USt-ID,     ↓
+                      E-Mail, Telefon)    hawk-eye-results/
 ```
 
 **Modelle:**
 - `nomic-embed-text` — Embedding für RAG-Vektoren
 - `llama3.2:3b` — Zusammenfassungen und Klassifizierung
+
+**Hawk Eye OCR** (`hawk-scanner`):
+- Scannt Rechnungen, Skizzen und Exporte auf PII/Sensitivdaten
+- Deutsche Fingerprints: IBAN, Steuernummer, USt-IdNr, Telefon, E-Mail, SV-Nummer
+- Läuft on-premise (DSGVO-konform, keine externen Datenabflüsse)
+- Ergebnisse in `hawk-eye-results/` als JSON
+- Vom Buchhaltungsbot alle 10 Minuten automatisch ausgeführt
 
 ---
 

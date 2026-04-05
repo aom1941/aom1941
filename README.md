@@ -65,7 +65,7 @@ iPad (SwiftUI)      ──┘
 
 Docker Services: Traefik · Immich · Ollama (MLX) · Gitea · Kimai
                  Paperless-ngx · BIMserver · FreeCAD · PostgreSQL
-                 ChromaDB (RAG) · Cloudflare Tunnel
+                 ChromaDB (RAG) · Cloudflare Tunnel · Hawk Eye (PII)
 ```
 
 ---

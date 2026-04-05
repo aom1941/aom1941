@@ -3,11 +3,13 @@
 # buchhaltungsbot.sh
 # Kleiner Buchhaltungsbot — immer auf der Suche
 #
-# Kombiniert zwei Aufgaben in einer Schleife:
+# Kombiniert drei Aufgaben in einer Schleife:
 #   A) Buchhaltung: Neue Rechnungen/Dokumente erkennen,
 #      RAG-Index aktualisieren, Zusammenfassungen generieren
 #   B) Cloudflare:  Tunnel-Gesundheit prüfen, bei Ausfall
 #      automatisch neu starten → „das lästige CF-Gedöns abnehmen"
+#   C) Hawk Eye:    PII-/Sensitivdaten-Scan auf neue Dokumente
+#      (DSGVO-Konformität automatisch sicherstellen)
 #
 # Damit ist die Antwort auf die Frage: JA, der Bot kann auch
 # das Cloudflare-Gedöns übernehmen.
@@ -30,6 +32,7 @@ PID_FILE="${PID_FILE:-/tmp/aom-buchhaltungsbot.pid}"
 # Intervalle (Sekunden)
 CHECK_INTERVAL="${CHECK_INTERVAL:-300}"       # 5 Minuten
 CF_CHECK_INTERVAL="${CF_CHECK_INTERVAL:-60}"  # 1 Minute
+HAWK_EYE_INTERVAL="${HAWK_EYE_INTERVAL:-600}" # 10 Minuten
 MAX_CF_RETRIES="${MAX_CF_RETRIES:-3}"
 
 # Service-URLs
@@ -157,6 +160,52 @@ manage_cloudflare_tunnel() {
   return 1
 }
 
+# ── C) Hawk Eye PII-Scan ─────────────────────────────────────
+
+# Neue Dokumente auf PII/Sensitivdaten scannen (DSGVO)
+run_hawk_eye_scan() {
+  bot_log "Starte Hawk Eye PII-Scan …"
+  local scan_script="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}/scripts/hawk-eye-scan.sh"
+
+  if [ ! -f "$scan_script" ]; then
+    # Fallback: hawk_scanner direkt aufrufen
+    if ! command -v hawk_scanner >/dev/null 2>&1; then
+      bot_log "Hawk Eye nicht installiert, überspringe PII-Scan"
+      return 0
+    fi
+
+    local project_dir="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}"
+    local connection_file="$project_dir/hawk-eye-connection.yml"
+    local fingerprint_file="$project_dir/hawk-eye-fingerprint.yml"
+
+    if [ ! -f "$connection_file" ] || [ ! -f "$fingerprint_file" ]; then
+      bot_log "Hawk Eye Config nicht gefunden, überspringe"
+      return 0
+    fi
+
+    local results_dir="$project_dir/hawk-eye-results"
+    mkdir -p "$results_dir"
+    local timestamp
+    timestamp=$(date +%Y%m%d_%H%M%S)
+
+    hawk_scanner fs \
+      --connection "$connection_file" \
+      --fingerprint "$fingerprint_file" \
+      --stdout --quiet 2>/dev/null \
+      | tee "$results_dir/scan_${timestamp}.json" \
+      | while IFS= read -r line; do
+          bot_log "  [HAWK] $line"
+        done
+    return 0
+  fi
+
+  PROJECT_DIR="${PROJECT_DIR:-$HOME/aom-sys-scanner-rag}" \
+    bash "$scan_script" 2>&1 | while IFS= read -r line; do
+      bot_log "  [HAWK] $line"
+    done
+  bot_log "Hawk Eye PII-Scan abgeschlossen"
+}
+
 # ── Health-Endpoint (einfacher HTTP-Server) ──────────────────
 start_health_endpoint() {
   # Minimaler Health-Endpoint via bash + socat/ncat
@@ -180,13 +229,15 @@ start_health_endpoint() {
 # ── Hauptschleife ────────────────────────────────────────────
 run_loop() {
   bot_log "═══ Buchhaltungsbot gestartet ═══"
-  bot_log "Check-Intervall:     ${CHECK_INTERVAL}s"
-  bot_log "CF-Check-Intervall:  ${CF_CHECK_INTERVAL}s"
+  bot_log "Check-Intervall:       ${CHECK_INTERVAL}s"
+  bot_log "CF-Check-Intervall:    ${CF_CHECK_INTERVAL}s"
+  bot_log "Hawk-Eye-Intervall:    ${HAWK_EYE_INTERVAL}s"
 
   start_health_endpoint
 
   local last_doc_check=0
   local last_cf_check=0
+  local last_hawk_check=0
 
   while true; do
     local now
@@ -198,12 +249,18 @@ run_loop() {
       last_cf_check=$now
     fi
 
-    # Buchhaltungs-Check (seltener)
+    # Buchhaltungs-Check
     if (( now - last_doc_check >= CHECK_INTERVAL )); then
       check_new_documents || true
       update_rag_index || true
       summarize_new_invoices || true
       last_doc_check=$now
+    fi
+
+    # Hawk Eye PII-Scan (seltener — ressourcenintensiv)
+    if (( now - last_hawk_check >= HAWK_EYE_INTERVAL )); then
+      run_hawk_eye_scan || true
+      last_hawk_check=$now
     fi
 
     sleep 30
@@ -274,10 +331,12 @@ Der Bot erledigt automatisch:
   🔍 RAG-Index (ChromaDB) aktualisieren
   🤖 LLM-Zusammenfassungen neuer Rechnungen erstellen
   🔒 Cloudflare-Tunnel überwachen und bei Ausfall neu starten
+  🦅 Hawk Eye PII-Scan auf neue Dokumente (DSGVO)
 
 Umgebungsvariablen:
   CHECK_INTERVAL       Buchhaltungs-Check Intervall   (default: 300s)
   CF_CHECK_INTERVAL    Cloudflare-Check Intervall      (default: 60s)
+  HAWK_EYE_INTERVAL    Hawk Eye Scan-Intervall         (default: 600s)
   MAX_CF_RETRIES       Max. Tunnel-Neustart-Versuche   (default: 3)
   PAPERLESS_URL        Paperless-ngx URL               (default: http://localhost:8000)
   PAPERLESS_TOKEN      Paperless API-Token

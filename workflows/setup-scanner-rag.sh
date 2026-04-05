@@ -7,7 +7,8 @@
 #   1. Paperless-ngx   → OCR-basierter Dokumentenscanner
 #   2. Ollama           → Lokale LLM-Inferenz für RAG
 #   3. RAG-Pipeline     → Embedding + Vektorspeicher (ChromaDB)
-#   4. Cloudflare Tunnel→ Zero-Trust Zugang (parallel zum Setup)
+#   4. Hawk Eye         → PII-/Sensitivdaten-Scanner mit OCR (DSGVO)
+#   5. Cloudflare Tunnel→ Zero-Trust Zugang (parallel zum Setup)
 #
 # Idee: Während des Aufbaus der Scanner-Infrastruktur werden
 # die Cloudflare-Tunnel schon „gelegt", damit beides gleichzeitig
@@ -262,6 +263,134 @@ PYTHON
   log "RAG-Indexer geschrieben → $PROJECT_DIR/scripts/rag-indexer.py"
 }
 
+# ── Hawk Eye OCR — PII-/Sensitivdaten-Scanner ───────────────
+install_hawk_eye() {
+  banner "Installiere Hawk Eye OCR (PII-Scanner)"
+  if command -v hawk_scanner >/dev/null 2>&1; then
+    log "hawk-scanner bereits installiert"
+    return 0
+  fi
+  pip3 install --user hawk-scanner \
+    || die "hawk-scanner konnte nicht installiert werden (pip3 install hawk-scanner)"
+  log "hawk-scanner installiert ✓"
+}
+
+generate_hawk_eye_config() {
+  banner "Generiere Hawk Eye Konfiguration"
+
+  # connection.yml — Scan-Quellen: Dateisystem + PostgreSQL
+  cat > "$PROJECT_DIR/hawk-eye-connection.yml" <<YAML
+sources:
+  # Eingangsordner: Rechnungen + Skizzen (OCR-Scan auf PII)
+  fs:
+    rechnungen:
+      path: "${PROJECT_DIR}/consume/rechnungen"
+      quick_scan: false
+    skizzen:
+      path: "${PROJECT_DIR}/consume/skizzen"
+      quick_scan: false
+    export:
+      path: "${PROJECT_DIR}/export"
+      quick_scan: true
+
+  # Paperless-ngx PostgreSQL (Dokumenten-Metadaten)
+  postgresql:
+    paperless_db:
+      host: "localhost"
+      port: 5432
+      username: "paperless"
+      password: "\${PAPERLESS_DB_PASS:-paperless}"
+      database: "paperless"
+YAML
+
+  # fingerprint.yml — PII-Muster (deutsch + international)
+  cat > "$PROJECT_DIR/hawk-eye-fingerprint.yml" <<'YAML'
+# Hawk Eye Fingerprints — DSGVO-relevante PII-Muster
+fingerprints:
+  # Deutsche Steuernummer (10-11 Ziffern, ggf. mit /)
+  - name: "DE-Steuernummer"
+    pattern: '\b\d{2,3}[/\s]?\d{3}[/\s]?\d{4,5}\b'
+    confidence: medium
+
+  # Deutsche Steuer-ID (11 Ziffern)
+  - name: "DE-SteuerID"
+    pattern: '\b\d{11}\b'
+    confidence: low
+
+  # IBAN (DE + international)
+  - name: "IBAN"
+    pattern: '\b[A-Z]{2}\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{0,4}\b'
+    confidence: high
+
+  # BIC/SWIFT
+  - name: "BIC-SWIFT"
+    pattern: '\b[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?\b'
+    confidence: medium
+
+  # Umsatzsteuer-ID (DE + EU)
+  - name: "USt-IdNr"
+    pattern: '\b(DE|AT|CH)\s?\d{9,11}\b'
+    confidence: high
+
+  # E-Mail
+  - name: "Email"
+    pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    confidence: high
+
+  # Telefonnummer (deutsch)
+  - name: "DE-Telefon"
+    pattern: '\b(\+49|0049|0)\s?\(?\d{2,5}\)?\s?[\d\s/-]{4,12}\b'
+    confidence: medium
+
+  # Sozialversicherungsnummer
+  - name: "DE-Sozialversicherung"
+    pattern: '\b\d{2}\s?\d{6}\s?[A-Z]\s?\d{3}\b'
+    confidence: high
+YAML
+
+  log "Hawk Eye Config geschrieben:"
+  log "  $PROJECT_DIR/hawk-eye-connection.yml"
+  log "  $PROJECT_DIR/hawk-eye-fingerprint.yml"
+}
+
+generate_hawk_eye_scanner() {
+  cat > "$PROJECT_DIR/scripts/hawk-eye-scan.sh" <<'BASH'
+#!/usr/bin/env bash
+# Hawk Eye PII-Scan — wrapper für den Buchhaltungsbot
+# Scannt Eingangsordner und exportiert Ergebnisse als JSON
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${PROJECT_DIR:-$(dirname "$SCRIPT_DIR")}"
+CONNECTION_FILE="${PROJECT_DIR}/hawk-eye-connection.yml"
+FINGERPRINT_FILE="${PROJECT_DIR}/hawk-eye-fingerprint.yml"
+RESULTS_DIR="${PROJECT_DIR}/hawk-eye-results"
+
+mkdir -p "$RESULTS_DIR"
+
+if ! command -v hawk_scanner >/dev/null 2>&1; then
+  echo "FEHLER: hawk_scanner nicht installiert (pip3 install hawk-scanner)" >&2
+  exit 1
+fi
+
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+echo "[$(date -Iseconds)] Starte Hawk Eye PII-Scan …"
+
+hawk_scanner fs \
+  --connection "$CONNECTION_FILE" \
+  --fingerprint "$FINGERPRINT_FILE" \
+  --stdout \
+  --quiet \
+  2>/dev/null | tee "$RESULTS_DIR/scan_${TIMESTAMP}.json"
+
+echo "[$(date -Iseconds)] Scan abgeschlossen → $RESULTS_DIR/scan_${TIMESTAMP}.json"
+BASH
+
+  chmod +x "$PROJECT_DIR/scripts/hawk-eye-scan.sh"
+  log "Hawk Eye Scanner-Skript → $PROJECT_DIR/scripts/hawk-eye-scan.sh"
+}
+
 # ── Cloudflare-Tunnel parallel aufsetzen ─────────────────────
 setup_cloudflare_parallel() {
   banner "Cloudflare-Tunnel Setup (parallel)"
@@ -327,6 +456,12 @@ Services:
   Ollama API      → http://localhost:11434
   ChromaDB        → http://localhost:8100
 
+Hawk Eye PII-Scanner:
+  Config:       $PROJECT_DIR/hawk-eye-connection.yml
+  Fingerprints: $PROJECT_DIR/hawk-eye-fingerprint.yml
+  Scan-Skript:  $PROJECT_DIR/scripts/hawk-eye-scan.sh
+  Ergebnisse:   $PROJECT_DIR/hawk-eye-results/
+
 Rechnungen ablegen in:  $PROJECT_DIR/consume/rechnungen/
 Skizzen ablegen in:     $PROJECT_DIR/consume/skizzen/
 
@@ -354,6 +489,11 @@ main() {
   prepare_dirs
   generate_compose
   generate_rag_indexer
+
+  # ── Hawk Eye OCR (PII-Scanner) ─────────────────────────────
+  install_hawk_eye
+  generate_hawk_eye_config
+  generate_hawk_eye_scanner
 
   # ── Paralleler Start: Cloudflare-Tunnel + Docker-Services ──
   # Tunnel-Setup läuft im Hintergrund während Docker startet
