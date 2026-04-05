@@ -193,8 +193,10 @@ def main():
         sys.exit(1)
 
     # ChromaDB-Client
-    chroma = chromadb.HttpClient(host=CHROMA_URL.replace("http://", "").split(":")[0],
-                                  port=int(CHROMA_URL.split(":")[-1]))
+    from urllib.parse import urlparse
+    _parsed = urlparse(CHROMA_URL)
+    chroma = chromadb.HttpClient(host=_parsed.hostname or "localhost",
+                                  port=_parsed.port or 8000)
     collection = chroma.get_or_create_collection(name=COLLECTION_NAME)
 
     # Paperless-ngx Dokumente abrufen

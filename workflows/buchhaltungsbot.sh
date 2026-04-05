@@ -55,14 +55,9 @@ bot_log() { printf '[BOT %s] %s\n' "$(date -Iseconds)" "$*" | tee -a "$LOG_FILE"
 check_new_documents() {
   bot_log "Prüfe neue Dokumente …"
 
-  local headers=""
-  if [ -n "$PAPERLESS_TOKEN" ]; then
-    headers="-H 'Authorization: Token $PAPERLESS_TOKEN'"
-  fi
-
   local count
   count=$(curl -sf "$PAPERLESS_URL/api/documents/?ordering=-added" \
-    ${headers:+-H "Authorization: Token $PAPERLESS_TOKEN"} 2>/dev/null \
+    ${PAPERLESS_TOKEN:+-H "Authorization: Token $PAPERLESS_TOKEN"} 2>/dev/null \
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('count',0))" 2>/dev/null \
     || echo "0")
 
