@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────────────────────────
+# aom-buchhaltungsbot.service
+# systemd User-Unit für den Buchhaltungsbot
+#
+# Installation (als normaler User):
+#   mkdir -p ~/.config/systemd/user/
+#   cp workflows/aom-buchhaltungsbot.service ~/.config/systemd/user/
+#   # Pfad in ExecStart anpassen (s.u.)
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now aom-buchhaltungsbot.service
+#
+# Logs anzeigen:
+#   journalctl --user -u aom-buchhaltungsbot -f
+#
+# HRFR-v2 · sys-Domain · Stand 2025
+# ──────────────────────────────────────────────────────────────
+
+[Unit]
+Description=aom Buchhaltungsbot — Rechnungs-RAG + Cloudflare-Tunnel-Verwaltung
+Documentation=https://github.com/aom1941/aom1941/tree/main/workflows
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Pfad zu buchhaltungsbot.sh anpassen (Repo-Klonpfad):
+ExecStart=/bin/bash %h/aom1941/workflows/buchhaltungsbot.sh run
+EnvironmentFile=%h/aom-sys-scanner-rag/.env
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aom-buchhaltungsbot
+
+[Install]
+WantedBy=default.target

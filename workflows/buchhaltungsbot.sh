@@ -49,6 +49,26 @@ BOT_HEALTH_PORT="${BOT_HEALTH_PORT:-8077}"
 # shellcheck source=./cloudflare-tunnel-helper.sh
 source "$SCRIPT_DIR/cloudflare-tunnel-helper.sh"
 
+# ── OLLAMA Basic-Auth aus URL extrahieren ────────────────────
+# Unterstützt: http://user:pass@host:port/path
+_parse_ollama_url() {
+  OLLAMA_CURL_AUTH=""
+  OLLAMA_URL_CLEAN="$OLLAMA_URL"
+  if [[ "$OLLAMA_URL" =~ ^(https?://)([^:@/]+):([^@/]+)@(.+)$ ]]; then
+    OLLAMA_CURL_AUTH="${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
+    OLLAMA_URL_CLEAN="${BASH_REMATCH[1]}${BASH_REMATCH[4]}"
+  elif [[ "$OLLAMA_URL" =~ ^(https?://)([^@/]+)@(.+)$ ]]; then
+    OLLAMA_CURL_AUTH="${BASH_REMATCH[2]}"
+    OLLAMA_URL_CLEAN="${BASH_REMATCH[1]}${BASH_REMATCH[3]}"
+  fi
+  # Array für sicheres Übergeben an curl (kein Word-Splitting bei Sonderzeichen)
+  OLLAMA_CURL_FLAGS=()
+  if [ -n "$OLLAMA_CURL_AUTH" ]; then
+    OLLAMA_CURL_FLAGS=(--user "$OLLAMA_CURL_AUTH")
+  fi
+}
+_parse_ollama_url
+
 # ── Logging ──────────────────────────────────────────────────
 bot_log() { printf '[BOT %s] %s\n' "$(date -Iseconds)" "$*" | tee -a "$LOG_FILE" 2>/dev/null || printf '[BOT %s] %s\n' "$(date -Iseconds)" "$*"; }
 bot_log_pipe() { local tag="${1:-}"; while IFS= read -r line; do bot_log "  $tag $line"; done; }
@@ -120,7 +140,8 @@ for d in data.get('results', [])[:5]:
   local prompt="Fasse die folgenden Dokumententitel kurz zusammen und markiere welche als Rechnungen erkennbar sind:\n$titles"
 
   local summary
-  summary=$(curl -sf "$OLLAMA_URL/api/generate" \
+  summary=$(curl -sf "${OLLAMA_CURL_FLAGS[@]+"${OLLAMA_CURL_FLAGS[@]}"}" \
+    "$OLLAMA_URL_CLEAN/api/generate" \
     -d "{\"model\":\"$OLLAMA_MODEL\",\"prompt\":\"$prompt\",\"stream\":false}" \
     2>/dev/null \
     | python3 -c "import sys,json; print(json.load(sys.stdin).get('response',''))" 2>/dev/null \
