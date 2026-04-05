@@ -65,7 +65,26 @@ iPad (SwiftUI)      ──┘
 
 Docker Services: Traefik · Immich · Ollama (MLX) · Gitea · Kimai
                  Paperless-ngx · BIMserver · FreeCAD · PostgreSQL
+                 ChromaDB (RAG) · Cloudflare Tunnel
 ```
+
+---
+
+## Workflows — Rechnungsscanner + Buchhaltungsbot
+
+> Sicherheitsgegner Nr. 1 = Alltag → automatisieren.
+
+Im Verzeichnis [`workflows/`](workflows/) liegen die Skripte für den
+automatisierten Rechnungs-/Skizzenscanner mit RAG und den Buchhaltungsbot:
+
+| Skript | Funktion |
+|--------|----------|
+| [`setup-scanner-rag.sh`](workflows/setup-scanner-rag.sh) | Scanner + RAG + Cloudflare-Tunnel in einem Lauf aufsetzen |
+| [`buchhaltungsbot.sh`](workflows/buchhaltungsbot.sh) | Dauerlauf-Bot: Buchhaltung **und** Cloudflare-Tunnel-Management |
+| [`cloudflare-tunnel-helper.sh`](workflows/cloudflare-tunnel-helper.sh) | Cloudflare-Tunnel Hilfsfunktionen |
+
+**Ja, der Bot kann das Cloudflare-Gedöns abnehmen** — er überwacht den Tunnel
+alle 60s und startet ihn bei Ausfall automatisch neu.
 
 ---
 
