@@ -60,6 +60,11 @@ generate_compose() {
   banner "Generiere Docker-Compose"
   mkdir -p "$PROJECT_DIR"
 
+  if [ -f "$COMPOSE_FILE" ] && [ "${FORCE:-}" != "1" ]; then
+    log "Docker-Compose existiert bereits → überspringe (FORCE=1 zum Überschreiben)"
+    return 0
+  fi
+
   cat > "$COMPOSE_FILE" <<'YAML'
 # ─────────────────────────────────────────────────
 # Rechnungs- & Skizzenscanner + RAG Pipeline
@@ -194,11 +199,26 @@ def main():
         sys.exit(1)
 
     # ChromaDB-Client
-    from urllib.parse import urlparse
+    from urllib.parse import urlparse, urlunparse
+    from requests.auth import HTTPBasicAuth
     _parsed = urlparse(CHROMA_URL)
     chroma = chromadb.HttpClient(host=_parsed.hostname or "localhost",
                                   port=_parsed.port or 8000)
     collection = chroma.get_or_create_collection(name=COLLECTION_NAME)
+
+    # OLLAMA Basic Auth aus URL extrahieren (http://user:pass@host/path)
+    _ollama_parsed = urlparse(OLLAMA_URL)
+    _ollama_auth = None
+    if _ollama_parsed.username:
+        _ollama_auth = HTTPBasicAuth(_ollama_parsed.username, _ollama_parsed.password or "")
+    _ollama_url_clean = urlunparse((
+        _ollama_parsed.scheme,
+        (_ollama_parsed.hostname or "") + (f":{_ollama_parsed.port}" if _ollama_parsed.port else ""),
+        _ollama_parsed.path,
+        _ollama_parsed.params,
+        _ollama_parsed.query,
+        _ollama_parsed.fragment,
+    ))
 
     # Paperless-ngx Dokumente abrufen
     headers = {}
@@ -225,10 +245,10 @@ def main():
                 continue  # Bereits aktuell
 
         # Embedding via Ollama
-        embed_resp = requests.post(f"{OLLAMA_URL}/api/embeddings", json={
+        embed_resp = requests.post(f"{_ollama_url_clean}/api/embeddings", json={
             "model": OLLAMA_MODEL,
             "prompt": content[:4000]  # Tokengrenze beachten
-        })
+        }, auth=_ollama_auth)
         embed_resp.raise_for_status()
         embedding = embed_resp.json().get("embedding", [])
 
@@ -438,6 +458,13 @@ pull_ollama_models() {
 start_services() {
   banner "Starte Docker-Services"
   cd "$PROJECT_DIR"
+
+  # Idempotenz: bereits laufende Container nicht neu starten
+  if docker ps --filter "name=aom-paperless" --filter "status=running" -q 2>/dev/null | grep -q .; then
+    log "Docker-Services laufen bereits (aom-paperless aktiv) → überspringe"
+    log "  Für Neustart: cd $PROJECT_DIR && docker compose up -d"
+    return 0
+  fi
 
   if docker compose version >/dev/null 2>&1; then
     docker compose up -d
