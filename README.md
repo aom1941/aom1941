@@ -1,10 +1,3 @@
-# Arne Oskar Müller — aom1941
-
-**Architekt · Keramiker · Systems Builder**  
-Nürnberg · TU Wien / TH Nürnberg · Stadt Nürnberg
-
----
-
 ## Arbeitsdomänen
 
 Alle Repositories folgen dem **HRFR-v2 Taxonomie-Schema** (`aom-<domain>-<name>`).  
