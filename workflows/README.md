@@ -17,7 +17,7 @@ Dokumente automatisch auf PII/Sensitivdaten (DSGVO).
 | [`setup-scanner-rag.sh`](setup-scanner-rag.sh) | Einrichtung Scanner + RAG + Cloudflare-Tunnel (alles in einem Lauf) |
 | [`buchhaltungsbot.sh`](buchhaltungsbot.sh) | Dauerlauf-Bot: Buchhaltung **und** Cloudflare-Tunnel-Verwaltung |
 | [`cloudflare-tunnel-helper.sh`](cloudflare-tunnel-helper.sh) | Cloudflare-Tunnel Hilfsfunktionen (wird von beiden Skripten genutzt) |
-| [`aom-buchhaltungsbot.service`](aom-buchhaltungsbot.service) | systemd User-Unit für den Buchhaltungsbot (dauerhafter Betrieb) |
+| [`aom-buchhaltungsbot@.service`](aom-buchhaltungsbot@.service) | systemd System-Unit-Template für den Buchhaltungsbot (dauerhafter Betrieb) |
 | [`.env.example`](.env.example) | Vorlage für alle Umgebungsvariablen |
 
 ---
@@ -100,19 +100,15 @@ export PAPERLESS_DB_PASS="sicheres-passwort"
 ### 3. Buchhaltungsbot als systemd-Service (dauerhaft)
 
 ```bash
-# User-Unit installieren
-mkdir -p ~/.config/systemd/user/
-cp workflows/aom-buchhaltungsbot.service ~/.config/systemd/user/
+# System-Unit-Template installieren (als root)
+sudo cp workflows/aom-buchhaltungsbot@.service /etc/systemd/system/
+sudo systemctl daemon-reload
 
-# Pfad in ExecStart anpassen (Zeile mit ExecStart):
-#   ExecStart=/bin/bash %h/aom1941/workflows/buchhaltungsbot.sh run
-# → %h wird zu $HOME expandiert; Repo-Pfad ggf. anpassen
-
-systemctl --user daemon-reload
-systemctl --user enable --now aom-buchhaltungsbot.service
+# Service für den gewünschten Benutzer aktivieren
+sudo systemctl enable --now aom-buchhaltungsbot@<benutzername>
 
 # Logs verfolgen
-journalctl --user -u aom-buchhaltungsbot -f
+journalctl -u aom-buchhaltungsbot@<benutzername> -f
 ```
 
 ### 4. Cloudflare-Tunnel manuell verwalten

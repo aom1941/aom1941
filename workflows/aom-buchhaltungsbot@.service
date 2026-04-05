@@ -1,31 +1,34 @@
 # ──────────────────────────────────────────────────────────────
-# aom-buchhaltungsbot.service
-# systemd User-Unit für den Buchhaltungsbot
+# aom-buchhaltungsbot@.service
+# systemd System-Unit-Template für den Buchhaltungsbot
+# (Instanz = Benutzername, z.B. aom-buchhaltungsbot@alice.service)
 #
-# Installation (als normaler User):
-#   mkdir -p ~/.config/systemd/user/
-#   cp workflows/aom-buchhaltungsbot.service ~/.config/systemd/user/
-#   # Pfad in ExecStart anpassen (s.u.)
-#   systemctl --user daemon-reload
-#   systemctl --user enable --now aom-buchhaltungsbot.service
+# Installation (als root):
+#   cp workflows/aom-buchhaltungsbot@.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now aom-buchhaltungsbot@<benutzername>
 #
 # Logs anzeigen:
-#   journalctl --user -u aom-buchhaltungsbot -f
+#   journalctl -u aom-buchhaltungsbot@<user> -f
+#
+# Hintergrund: User-Units können nicht von docker.service abhängen;
+# für Headless-Server wird daher eine System-Unit benötigt.
 #
 # HRFR-v2 · sys-Domain · Stand 2025
 # ──────────────────────────────────────────────────────────────
 
 [Unit]
-Description=aom Buchhaltungsbot — Rechnungs-RAG + Cloudflare-Tunnel-Verwaltung
+Description=aom Buchhaltungsbot — Rechnungs-RAG + Cloudflare-Tunnel-Verwaltung (%i)
 Documentation=https://github.com/aom1941/aom1941/tree/main/workflows
 After=docker.service network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
+User=%i
 # Pfad zu buchhaltungsbot.sh anpassen (Repo-Klonpfad):
-ExecStart=/bin/bash %h/aom1941/workflows/buchhaltungsbot.sh run
-EnvironmentFile=%h/aom-sys-scanner-rag/.env
+ExecStart=/bin/bash /home/%i/aom1941/workflows/buchhaltungsbot.sh run
+EnvironmentFile=/home/%i/aom-sys-scanner-rag/.env
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -33,4 +36,4 @@ StandardError=journal
 SyslogIdentifier=aom-buchhaltungsbot
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

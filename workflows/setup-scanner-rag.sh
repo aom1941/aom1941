@@ -290,8 +290,16 @@ install_hawk_eye() {
     log "hawk-scanner bereits installiert"
     return 0
   fi
-  pip3 install --user hawk-scanner \
-    || die "hawk-scanner konnte nicht installiert werden (pip3 install hawk-scanner)"
+  if command -v pipx >/dev/null 2>&1; then
+    pipx install hawk-scanner \
+      && pipx inject hawk-scanner setuptools --force \
+      || die "hawk-scanner konnte nicht via pipx installiert werden"
+  else
+    log "WARNUNG: pipx nicht gefunden — verwende pip3 --break-system-packages"
+    log "         Empfehlung: pipx install hawk-scanner (pip3 schlägt fehl auf Python 3.14 / PEP 668)"
+    pip3 install --break-system-packages hawk-scanner \
+      || die "hawk-scanner konnte nicht installiert werden. Bitte zuerst pipx installieren (z.B. pacman -S python-pipx) und dann: pipx install hawk-scanner && pipx inject hawk-scanner setuptools --force"
+  fi
   log "hawk-scanner installiert ✓"
 }
 
