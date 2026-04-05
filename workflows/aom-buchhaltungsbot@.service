@@ -6,7 +6,7 @@
 # Installation (als root):
 #   cp workflows/aom-buchhaltungsbot@.service /etc/systemd/system/
 #   systemctl daemon-reload
-#   sudo systemctl enable --now aom-buchhaltungsbot@$(whoami)
+#   systemctl enable --now aom-buchhaltungsbot@<benutzername>
 #
 # Logs anzeigen:
 #   journalctl -u aom-buchhaltungsbot@<user> -f

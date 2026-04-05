@@ -104,11 +104,11 @@ export PAPERLESS_DB_PASS="sicheres-passwort"
 sudo cp workflows/aom-buchhaltungsbot@.service /etc/systemd/system/
 sudo systemctl daemon-reload
 
-# Service für den aktuellen Benutzer aktivieren
-sudo systemctl enable --now aom-buchhaltungsbot@$(whoami)
+# Service für den gewünschten Benutzer aktivieren
+sudo systemctl enable --now aom-buchhaltungsbot@<benutzername>
 
 # Logs verfolgen
-journalctl -u aom-buchhaltungsbot@$(whoami) -f
+journalctl -u aom-buchhaltungsbot@<benutzername> -f
 ```
 
 ### 4. Cloudflare-Tunnel manuell verwalten
