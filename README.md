@@ -35,6 +35,10 @@ Jede Domain ist konzeptuell und steuerlich abgegrenzt.
 > Steuerlich isoliert von allen anderen Domains.  
 > `React` `Node.js`
 
+### [`aom_serv`](https://github.com/aom1941/aom_serv) — Pilzkeramik Web-Auftritt
+> Single-Page-Website für eine Töpferschule. Hero mit morphendem Blob · Kurs-Grid · animierte SVG Töpfer-Signaturen (IntersectionObserver + stroke-dashoffset). Erdige Palette: Terrakotta, Ton, Moos, Knochen.  
+> `HTML5` `CSS3` `Vanilla JS`
+
 ---
 
 ## Systemphilosophie
