@@ -1,0 +1,78 @@
+:root {
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #d9d2c8;
+  background: #171310;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --text-h: #f8f3ee;
+  --muted: #bea994;
+  --border: rgba(231, 214, 194, 0.14);
+  --surface: rgba(43, 34, 28, 0.92);
+  --tag-bg: rgba(210, 164, 101, 0.16);
+  --accent: #f2a65a;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(242, 166, 90, 0.16), transparent 30%),
+    linear-gradient(180deg, #211913 0%, #171310 100%);
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+  width: min(1280px, 100%);
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3,
+p,
+ul {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-h);
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-size: 1.45rem;
+  margin-bottom: 8px;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+p,
+li {
+  color: #dfd5cb;
+}
