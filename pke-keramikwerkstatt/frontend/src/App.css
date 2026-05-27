@@ -1,0 +1,147 @@
+.app-shell {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+}
+
+.hero {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  align-items: start;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+}
+
+.hero-copy {
+  max-width: 60ch;
+  font-size: 1.1rem;
+}
+
+.hero-card,
+.panel,
+.metric-card,
+.detail-card,
+.stack-row {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hero-card,
+.metric-card,
+.detail-card,
+.stack-row {
+  padding: 20px;
+}
+
+.hero-card ul,
+.detail-card ul,
+.stack-row ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.notice {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.warning {
+  border-color: rgba(196, 126, 1, 0.35);
+  background: rgba(196, 126, 1, 0.1);
+}
+
+.metrics-grid,
+.content-grid,
+.card-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.metrics-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.content-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+  padding: 24px;
+}
+
+.panel-heading {
+  margin-bottom: 20px;
+}
+
+.panel-heading p {
+  max-width: 58ch;
+}
+
+.card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.metric-card span,
+.detail-card strong {
+  display: block;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.metric-card strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 2rem;
+  color: var(--text-h);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tag-list span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--tag-bg);
+  color: var(--text-h);
+  font-size: 0.85rem;
+}
+
+.stack-list {
+  display: grid;
+  gap: 12px;
+}
+
+.stack-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@media (max-width: 960px) {
+  .app-shell {
+    padding: 20px;
+  }
+
+  .hero,
+  .metrics-grid,
+  .content-grid,
+  .stack-row {
+    grid-template-columns: 1fr;
+  }
+}
