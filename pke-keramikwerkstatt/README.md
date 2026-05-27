@@ -32,7 +32,7 @@ pke-keramikwerkstatt/
 ## Schnellstart
 
 ```bash
-cd /tmp/workspace/aom1941/aom1941/pke-keramikwerkstatt
+cd <dein-clone>/pke-keramikwerkstatt
 cp .env.example .env
 docker compose up --build
 ```
@@ -48,7 +48,7 @@ Danach:
 ### Backend
 
 ```bash
-cd /tmp/workspace/aom1941/aom1941/pke-keramikwerkstatt/backend
+cd <dein-clone>/pke-keramikwerkstatt/backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -58,7 +58,7 @@ uvicorn app.main:app --reload
 ### Frontend
 
 ```bash
-cd /tmp/workspace/aom1941/aom1941/pke-keramikwerkstatt/frontend
+cd <dein-clone>/pke-keramikwerkstatt/frontend
 npm install
 npm run dev
 ```
