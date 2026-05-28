@@ -1,49 +1,20 @@
 import { useEffect, useState } from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { Navigation } from './components/Navigation'
+import { KursDetail } from './pages/KursDetail'
+import { KursForm } from './pages/KursForm'
+import { KursListe } from './pages/KursListe'
 
-type Metric = {
-  label: string
-  value: string
-  note: string
-}
+// ── Blueprint types & data (kept for /blueprint route) ───────────────────────
 
-type RoleCard = {
-  name: string
-  focus: string
-  permissions: string[]
-}
-
-type PageCard = {
-  name: string
-  purpose: string
-  primary_actions: string[]
-}
-
-type ModuleCard = {
-  slug: string
-  title: string
-  summary: string
-  highlights: string[]
-  entities: string[]
-}
-
-type AutomationCard = {
-  name: string
-  trigger: string
-  outcome: string
-}
-
-type PhaseCard = {
-  title: string
-  goal: string
-  deliverables: string[]
-}
-
-type StackLayer = {
-  layer: string
-  choice: string
-  reason: string
-}
+type Metric = { label: string; value: string; note: string }
+type RoleCard = { name: string; focus: string; permissions: string[] }
+type PageCard = { name: string; purpose: string; primary_actions: string[] }
+type ModuleCard = { slug: string; title: string; summary: string; highlights: string[]; entities: string[] }
+type AutomationCard = { name: string; trigger: string; outcome: string }
+type PhaseCard = { title: string; goal: string; deliverables: string[] }
+type StackLayer = { layer: string; choice: string; reason: string }
 
 type Blueprint = {
   name: string
@@ -60,8 +31,7 @@ type Blueprint = {
 
 const fallbackBlueprint: Blueprint = {
   name: 'Pilzkeramik Werkstattboard',
-  promise:
-    'Self-hosted Organisations-Webapp für Werkstattabläufe, Buchungen, Brennplanung und Dokumente.',
+  promise: 'Self-hosted Organisations-Webapp für Werkstattabläufe, Buchungen, Brennplanung und Dokumente.',
   scope: [
     'Kund:innenverwaltung',
     'Auftrags- und Werkstückverwaltung',
@@ -70,219 +40,66 @@ const fallbackBlueprint: Blueprint = {
     'Rechnungs- und Dokumentenablage',
   ],
   metrics: [
-    {
-      label: 'MVP-Module',
-      value: '5',
-      note: 'CRM, Werkstatt, Brennkalender, Buchungen, Dokumente',
-    },
-    {
-      label: 'Rollen',
-      value: '4',
-      note: 'Admin, Werkstatt, Kursleitung, Buchhaltung',
-    },
-    {
-      label: 'Betrieb',
-      value: 'Self-hosted',
-      note: 'Docker, PostgreSQL, lokales Storage, DSGVO-freundlich',
-    },
+    { label: 'MVP-Module', value: '5', note: 'CRM, Werkstatt, Brennkalender, Buchungen, Dokumente' },
+    { label: 'Rollen', value: '4', note: 'Admin, Werkstatt, Kursleitung, Buchhaltung' },
+    { label: 'Betrieb', value: 'Self-hosted', note: 'Docker, PostgreSQL, lokales Storage, DSGVO-freundlich' },
   ],
   roles: [
-    {
-      name: 'Admin',
-      focus: 'Mandanten-, Rollen- und Systemkonfiguration',
-      permissions: ['Benutzer verwalten', 'Module freischalten', 'Backups prüfen'],
-    },
-    {
-      name: 'Werkstatt',
-      focus: 'Produktionsfluss vom Drehen bis zur Abholung',
-      permissions: ['Werkstücke pflegen', 'Brennstatus ändern', 'Materialverbrauch erfassen'],
-    },
-    {
-      name: 'Kursleitung',
-      focus: 'Kursplanung und Teilnehmerverwaltung',
-      permissions: ['Termine pflegen', 'Wartelisten steuern', 'Teilnahmen bestätigen'],
-    },
-    {
-      name: 'Buchhaltung',
-      focus: 'Rechnungen, Angebote und Belegablage',
-      permissions: ['Dokumente ablegen', 'Rechnungsstatus setzen', 'Export vorbereiten'],
-    },
+    { name: 'Admin', focus: 'Mandanten-, Rollen- und Systemkonfiguration', permissions: ['Benutzer verwalten', 'Module freischalten', 'Backups prüfen'] },
+    { name: 'Werkstatt', focus: 'Produktionsfluss vom Drehen bis zur Abholung', permissions: ['Werkstücke pflegen', 'Brennstatus ändern', 'Materialverbrauch erfassen'] },
+    { name: 'Kursleitung', focus: 'Kursplanung und Teilnehmerverwaltung', permissions: ['Termine pflegen', 'Wartelisten steuern', 'Teilnahmen bestätigen'] },
+    { name: 'Buchhaltung', focus: 'Rechnungen, Angebote und Belegablage', permissions: ['Dokumente ablegen', 'Rechnungsstatus setzen', 'Export vorbereiten'] },
   ],
   pages: [
-    {
-      name: 'Dashboard',
-      purpose: 'Tages- und Wochenüberblick für Werkstattbetrieb',
-      primary_actions: ['Offene Brennvorgänge prüfen', 'Abholungen sehen', 'Kurse im Blick behalten'],
-    },
-    {
-      name: 'Kund:innen & Aufträge',
-      purpose: 'CRM, Ansprechpartner und Auftragsstatus',
-      primary_actions: ['Kontakt anlegen', 'Auftrag starten', 'Werkstücke zuordnen'],
-    },
-    {
-      name: 'Brennkalender',
-      purpose: 'Ofenkapazität, Temperaturen und Brennstatus steuern',
-      primary_actions: ['Ofenlauf planen', 'Beladung prüfen', 'Status aktualisieren'],
-    },
-    {
-      name: 'Kurse & Buchungen',
-      purpose: 'Termine, Buchungen und Wartelisten verwalten',
-      primary_actions: ['Kurs anlegen', 'Teilnehmer bestätigen', 'Freie Plätze prüfen'],
-    },
-    {
-      name: 'Dokumente',
-      purpose: 'Rechnungen, Angebote, Lieferscheine und Anhänge bündeln',
-      primary_actions: ['Beleg hochladen', 'Rechnung markieren', 'OCR später anbinden'],
-    },
+    { name: 'Dashboard', purpose: 'Tages- und Wochenüberblick für Werkstattbetrieb', primary_actions: ['Offene Brennvorgänge prüfen', 'Abholungen sehen', 'Kurse im Blick behalten'] },
+    { name: 'Kund:innen & Aufträge', purpose: 'CRM, Ansprechpartner und Auftragsstatus', primary_actions: ['Kontakt anlegen', 'Auftrag starten', 'Werkstücke zuordnen'] },
+    { name: 'Brennkalender', purpose: 'Ofenkapazität, Temperaturen und Brennstatus steuern', primary_actions: ['Ofenlauf planen', 'Beladung prüfen', 'Status aktualisieren'] },
+    { name: 'Kurse & Buchungen', purpose: 'Termine, Buchungen und Wartelisten verwalten', primary_actions: ['Kurs anlegen', 'Teilnehmer bestätigen', 'Freie Plätze prüfen'] },
+    { name: 'Dokumente', purpose: 'Rechnungen, Angebote, Lieferscheine und Anhänge bündeln', primary_actions: ['Beleg hochladen', 'Rechnung markieren', 'OCR später anbinden'] },
   ],
   modules: [
-    {
-      slug: 'crm',
-      title: 'CRM',
-      summary: 'Kund:innen, Ansprechpartner, Notizen und Statushistorien an einem Ort.',
-      highlights: ['Kontaktkarte', 'Auftragshistorie', 'Interne Notizen'],
-      entities: ['Kund:in', 'Ansprechpartner', 'Auftrag', 'Statushistorie'],
-    },
-    {
-      slug: 'werkstatt',
-      title: 'Werkstattplanung',
-      summary: 'Produktionsschritte von Drehen über Trocknen bis Glasieren und Abholung.',
-      highlights: ['Werkstückboard', 'Produktionsstatus', 'Aufgaben je Station'],
-      entities: ['Werkstück', 'Produktionsschritt', 'Aufgabe', 'Abholung'],
-    },
-    {
-      slug: 'brennkalender',
-      title: 'Brennkalender',
-      summary: 'Brennpläne mit Kapazität, Temperaturprofil und Verantwortlichkeit.',
-      highlights: ['Ofenbelegung', 'Kapazität', 'Schrüh-/Glasurbrand-Status'],
-      entities: ['Ofen', 'Brennvorgang', 'Beladung', 'Temperaturprofil'],
-    },
-    {
-      slug: 'buchungen',
-      title: 'Buchungssystem',
-      summary: 'Kurse, offene Werkstatt und Einzeltermine mit Wartelistenlogik.',
-      highlights: ['Kursübersicht', 'Freie Plätze', 'Teilnahmebestätigung'],
-      entities: ['Kurs', 'Buchung', 'Teilnahme', 'Wartelisteneintrag'],
-    },
-    {
-      slug: 'dokumente',
-      title: 'Dokumentenmodul',
-      summary: 'Rechnungen, Angebote, Lieferscheine und Anhänge sauber ablegen.',
-      highlights: ['Belegliste', 'Statusfilter', 'Dateiverknüpfung'],
-      entities: ['Rechnung', 'Dokument', 'Datei', 'Angebot'],
-    },
-    {
-      slug: 'inventar',
-      title: 'Inventar',
-      summary: 'Ton, Glasuren, Werkzeuge und Mindestbestände als nächste Ausbaustufe.',
-      highlights: ['Bestände', 'Warnschwellen', 'Verbrauchsnotizen'],
-      entities: ['Material', 'Bestand', 'Werkzeug', 'Lieferant'],
-    },
+    { slug: 'crm', title: 'CRM', summary: 'Kund:innen, Ansprechpartner, Notizen und Statushistorien an einem Ort.', highlights: ['Kontaktkarte', 'Auftragshistorie', 'Interne Notizen'], entities: ['Kund:in', 'Ansprechpartner', 'Auftrag', 'Statushistorie'] },
+    { slug: 'werkstatt', title: 'Werkstattplanung', summary: 'Produktionsschritte von Drehen über Trocknen bis Glasieren und Abholung.', highlights: ['Werkstückboard', 'Produktionsstatus', 'Aufgaben je Station'], entities: ['Werkstück', 'Produktionsschritt', 'Aufgabe', 'Abholung'] },
+    { slug: 'brennkalender', title: 'Brennkalender', summary: 'Brennpläne mit Kapazität, Temperaturprofil und Verantwortlichkeit.', highlights: ['Ofenbelegung', 'Kapazität', 'Schrüh-/Glasurbrand-Status'], entities: ['Ofen', 'Brennvorgang', 'Beladung', 'Temperaturprofil'] },
+    { slug: 'buchungen', title: 'Buchungssystem', summary: 'Kurse, offene Werkstatt und Einzeltermine mit Wartelistenlogik.', highlights: ['Kursübersicht', 'Freie Plätze', 'Teilnahmebestätigung'], entities: ['Kurs', 'Buchung', 'Teilnahme', 'Wartelisteneintrag'] },
+    { slug: 'dokumente', title: 'Dokumentenmodul', summary: 'Rechnungen, Angebote, Lieferscheine und Anhänge sauber ablegen.', highlights: ['Belegliste', 'Statusfilter', 'Dateiverknüpfung'], entities: ['Rechnung', 'Dokument', 'Datei', 'Angebot'] },
+    { slug: 'inventar', title: 'Inventar', summary: 'Ton, Glasuren, Werkzeuge und Mindestbestände als nächste Ausbaustufe.', highlights: ['Bestände', 'Warnschwellen', 'Verbrauchsnotizen'], entities: ['Material', 'Bestand', 'Werkzeug', 'Lieferant'] },
   ],
   automations: [
-    {
-      name: 'Abholerinnerung',
-      trigger: 'Werkstück wird als abholbereit markiert',
-      outcome: 'Kontaktliste für Erinnerung wird erzeugt',
-    },
-    {
-      name: 'Brennstatus-Update',
-      trigger: 'Brennvorgang wechselt die Phase',
-      outcome: 'Betroffene Werkstücke und Aufträge erhalten den neuen Status',
-    },
-    {
-      name: 'Materialwarnung',
-      trigger: 'Bestand fällt unter Mindestmenge',
-      outcome: 'Warnhinweis im Dashboard und für Einkaufsliste',
-    },
-    {
-      name: 'Buchungsbestätigung',
-      trigger: 'Teilnahme wird bestätigt',
-      outcome: 'Termin erscheint in Kursübersicht und Warteliste wird nachgezogen',
-    },
+    { name: 'Abholerinnerung', trigger: 'Werkstück wird als abholbereit markiert', outcome: 'Kontaktliste für Erinnerung wird erzeugt' },
+    { name: 'Brennstatus-Update', trigger: 'Brennvorgang wechselt die Phase', outcome: 'Betroffene Werkstücke und Aufträge erhalten den neuen Status' },
+    { name: 'Materialwarnung', trigger: 'Bestand fällt unter Mindestmenge', outcome: 'Warnhinweis im Dashboard und für Einkaufsliste' },
+    { name: 'Buchungsbestätigung', trigger: 'Teilnahme wird bestätigt', outcome: 'Termin erscheint in Kursübersicht und Warteliste wird nachgezogen' },
   ],
   phases: [
-    {
-      title: 'Phase 1 — MVP',
-      goal: 'Kernprozesse der Werkstatt sichtbar und planbar machen',
-      deliverables: [
-        'CRM-Grundlage',
-        'Werkstück- und Auftragsboard',
-        'Brennkalender',
-        'Kursbuchungen',
-        'Dokumentenablage',
-      ],
-    },
-    {
-      title: 'Phase 2 — Betriebstiefe',
-      goal: 'Inventar, Medienarchiv und Tagessteuerung ergänzen',
-      deliverables: ['Lagerlogik', 'Bild-/Objektarchiv', 'Tagesdashboard'],
-    },
-    {
-      title: 'Phase 3 — Automationen',
-      goal: 'Dokumente, Benachrichtigungen und Auswertungen ausbauen',
-      deliverables: ['OCR/RAG-Anbindung', 'Nachrichtenkanäle', 'Auswertungen zu Umsatz und Auslastung'],
-    },
+    { title: 'Phase 1 — MVP', goal: 'Kernprozesse der Werkstatt sichtbar und planbar machen', deliverables: ['CRM-Grundlage', 'Werkstück- und Auftragsboard', 'Brennkalender', 'Kursbuchungen', 'Dokumentenablage'] },
+    { title: 'Phase 2 — Betriebstiefe', goal: 'Inventar, Medienarchiv und Tagessteuerung ergänzen', deliverables: ['Lagerlogik', 'Bild-/Objektarchiv', 'Tagesdashboard'] },
+    { title: 'Phase 3 — Automationen', goal: 'Dokumente, Benachrichtigungen und Auswertungen ausbauen', deliverables: ['OCR/RAG-Anbindung', 'Nachrichtenkanäle', 'Auswertungen zu Umsatz und Auslastung'] },
   ],
   stack: [
-    {
-      layer: 'Frontend',
-      choice: 'React + Vite',
-      reason: 'Schneller MVP-Start, klare Komponentenstruktur, leicht self-hostbar.',
-    },
-    {
-      layer: 'Backend',
-      choice: 'FastAPI',
-      reason: 'Klare API-Struktur, gute Typisierung und schnell erweiterbar.',
-    },
-    {
-      layer: 'Datenbank',
-      choice: 'PostgreSQL',
-      reason: 'Robust für relationale Werkstatt-, Buchungs- und Dokumentendaten.',
-    },
-    {
-      layer: 'Storage',
-      choice: 'S3-kompatibel oder NAS',
-      reason: 'Geeignet für Rechnungen, Fotos und Anhänge ohne SaaS-Zwang.',
-    },
-    {
-      layer: 'Betrieb',
-      choice: 'Docker Compose',
-      reason: 'Einfacher self-hosted Einstieg mit sauberer Trennung der Dienste.',
-    },
+    { layer: 'Frontend', choice: 'React + Vite', reason: 'Schneller MVP-Start, klare Komponentenstruktur, leicht self-hostbar.' },
+    { layer: 'Backend', choice: 'FastAPI', reason: 'Klare API-Struktur, gute Typisierung und schnell erweiterbar.' },
+    { layer: 'Datenbank', choice: 'PostgreSQL', reason: 'Robust für relationale Werkstatt-, Buchungs- und Dokumentendaten.' },
+    { layer: 'Storage', choice: 'S3-kompatibel oder NAS', reason: 'Geeignet für Rechnungen, Fotos und Anhänge ohne SaaS-Zwang.' },
+    { layer: 'Betrieb', choice: 'Docker Compose', reason: 'Einfacher self-hosted Einstieg mit sauberer Trennung der Dienste.' },
   ],
 }
 
-function App() {
+function BlueprintPage() {
   const [blueprint, setBlueprint] = useState<Blueprint>(fallbackBlueprint)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loadingBp, setLoadingBp] = useState(true)
+  const [bpError, setBpError] = useState<string | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
-
-    async function loadBlueprint() {
-      try {
-        const response = await fetch('/api/blueprint', { signal: controller.signal })
-        if (!response.ok) {
-          throw new Error(`API antwortet mit ${response.status}`)
-        }
-
-        const data = (await response.json()) as Blueprint
-        setBlueprint(data)
-      } catch (loadError) {
-        if (loadError instanceof DOMException && loadError.name === 'AbortError') {
-          return
-        }
-
-        setError('API nicht erreichbar — Fallback-Blueprint wird angezeigt.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    void loadBlueprint()
-
+    fetch('/api/blueprint', { signal: controller.signal })
+      .then((r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json() as Promise<Blueprint> })
+      .then(setBlueprint)
+      .catch((e: unknown) => {
+        if (e instanceof DOMException && e.name === 'AbortError') return
+        setBpError('API nicht erreichbar — Fallback-Blueprint wird angezeigt.')
+      })
+      .finally(() => setLoadingBp(false))
     return () => controller.abort()
   }, [])
 
@@ -296,16 +113,12 @@ function App() {
         </div>
         <div className="hero-card">
           <h2>Fokus</h2>
-          <ul>
-            {blueprint.scope.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <ul>{blueprint.scope.map((item) => <li key={item}>{item}</li>)}</ul>
         </div>
       </section>
 
-      {error ? <p className="notice warning">{error}</p> : null}
-      {loading ? <p className="notice">Lade Blueprint…</p> : null}
+      {bpError ? <p className="notice warning">{bpError}</p> : null}
+      {loadingBp ? <p className="notice">Lade Blueprint…</p> : null}
 
       <section className="metrics-grid">
         {blueprint.metrics.map((metric) => (
@@ -329,17 +142,9 @@ function App() {
                 <h3>{module.title}</h3>
                 <p>{module.summary}</p>
                 <strong>Highlights</strong>
-                <ul>
-                  {module.highlights.map((highlight) => (
-                    <li key={highlight}>{highlight}</li>
-                  ))}
-                </ul>
+                <ul>{module.highlights.map((h) => <li key={h}>{h}</li>)}</ul>
                 <strong>Entitäten</strong>
-                <div className="tag-list">
-                  {module.entities.map((entity) => (
-                    <span key={entity}>{entity}</span>
-                  ))}
-                </div>
+                <div className="tag-list">{module.entities.map((e) => <span key={e}>{e}</span>)}</div>
               </article>
             ))}
           </div>
@@ -353,15 +158,8 @@ function App() {
           <div className="stack-list">
             {blueprint.roles.map((role) => (
               <article className="stack-row" key={role.name}>
-                <div>
-                  <h3>{role.name}</h3>
-                  <p>{role.focus}</p>
-                </div>
-                <ul>
-                  {role.permissions.map((permission) => (
-                    <li key={permission}>{permission}</li>
-                  ))}
-                </ul>
+                <div><h3>{role.name}</h3><p>{role.focus}</p></div>
+                <ul>{role.permissions.map((p) => <li key={p}>{p}</li>)}</ul>
               </article>
             ))}
           </div>
@@ -379,11 +177,7 @@ function App() {
               <article className="detail-card" key={page.name}>
                 <h3>{page.name}</h3>
                 <p>{page.purpose}</p>
-                <ul>
-                  {page.primary_actions.map((action) => (
-                    <li key={action}>{action}</li>
-                  ))}
-                </ul>
+                <ul>{page.primary_actions.map((a) => <li key={a}>{a}</li>)}</ul>
               </article>
             ))}
           </div>
@@ -395,15 +189,11 @@ function App() {
             <p>Die ersten Alltagserleichterungen für einen echten Werkstattbetrieb.</p>
           </div>
           <div className="card-grid">
-            {blueprint.automations.map((automation) => (
-              <article className="detail-card" key={automation.name}>
-                <h3>{automation.name}</h3>
-                <p>
-                  <strong>Trigger:</strong> {automation.trigger}
-                </p>
-                <p>
-                  <strong>Ergebnis:</strong> {automation.outcome}
-                </p>
+            {blueprint.automations.map((auto) => (
+              <article className="detail-card" key={auto.name}>
+                <h3>{auto.name}</h3>
+                <p><strong>Trigger:</strong> {auto.trigger}</p>
+                <p><strong>Ergebnis:</strong> {auto.outcome}</p>
               </article>
             ))}
           </div>
@@ -419,10 +209,7 @@ function App() {
           <div className="stack-list">
             {blueprint.stack.map((entry) => (
               <article className="stack-row" key={entry.layer}>
-                <div>
-                  <h3>{entry.layer}</h3>
-                  <p>{entry.choice}</p>
-                </div>
+                <div><h3>{entry.layer}</h3><p>{entry.choice}</p></div>
                 <p>{entry.reason}</p>
               </article>
             ))}
@@ -437,21 +224,29 @@ function App() {
           <div className="stack-list">
             {blueprint.phases.map((phase) => (
               <article className="stack-row" key={phase.title}>
-                <div>
-                  <h3>{phase.title}</h3>
-                  <p>{phase.goal}</p>
-                </div>
-                <ul>
-                  {phase.deliverables.map((deliverable) => (
-                    <li key={deliverable}>{deliverable}</li>
-                  ))}
-                </ul>
+                <div><h3>{phase.title}</h3><p>{phase.goal}</p></div>
+                <ul>{phase.deliverables.map((d) => <li key={d}>{d}</li>)}</ul>
               </article>
             ))}
           </div>
         </article>
       </section>
     </main>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Navigation />
+      <Routes>
+        <Route path="/" element={<KursListe />} />
+        <Route path="/kurse/neu" element={<KursForm />} />
+        <Route path="/kurse/:id" element={<KursDetail />} />
+        <Route path="/kurse/:id/bearbeiten" element={<KursForm />} />
+        <Route path="/blueprint" element={<BlueprintPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

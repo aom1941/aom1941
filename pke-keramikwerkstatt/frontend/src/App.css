@@ -145,3 +145,356 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Navigation ─────────────────────────────────────────────────────────── */
+
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(23, 19, 16, 0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-brand {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-h);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background: var(--tag-bg);
+  color: var(--text-h);
+}
+
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+
+.page-shell {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: 4px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #1a0e08;
+}
+
+.btn-secondary {
+  background: var(--tag-bg);
+  color: var(--text-h);
+}
+
+.btn-danger {
+  background: rgba(220, 60, 60, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(220, 60, 60, 0.3);
+}
+
+.btn-copy {
+  background: var(--tag-bg);
+  color: var(--text-h);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+
+.btn-icon-danger {
+  background: none;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.btn-icon-danger:hover {
+  background: rgba(220, 60, 60, 0.12);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-copy:hover {
+  opacity: 0.85;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Status badges ──────────────────────────────────────────────────────── */
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-geplant    { background: rgba(100, 140, 220, 0.18); color: #93b4f7; }
+.status-aktiv      { background: rgba(80, 200, 120, 0.18);  color: #6ee08d; }
+.status-abgeschlossen { background: rgba(180, 180, 180, 0.15); color: #aaaaaa; }
+.status-abgesagt   { background: rgba(220, 60, 60, 0.18);   color: #f87171; }
+.status-warteliste { background: rgba(240, 180, 60, 0.18);  color: #fbbf24; }
+.status-bestaetigt { background: rgba(80, 200, 120, 0.18);  color: #6ee08d; }
+
+/* ── Kurs card ──────────────────────────────────────────────────────────── */
+
+.kurs-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kurs-card-header h3 {
+  margin: 0;
+}
+
+.kurs-beschreibung {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.kurs-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ── Kurs detail info grid ──────────────────────────────────────────────── */
+
+.kurs-info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 20px;
+  align-items: baseline;
+  font-size: 0.95rem;
+}
+
+.kurs-info-grid span:nth-child(odd) {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Termine list ───────────────────────────────────────────────────────── */
+
+.termine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.termin-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.termin-row span:first-child {
+  flex: 1;
+}
+
+.muted-text {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ── Teilnehmer table ───────────────────────────────────────────────────── */
+
+.teilnehmer-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  font-size: 0.92rem;
+}
+
+.teilnehmer-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+
+.teilnehmer-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: top;
+}
+
+/* ── WhatsApp vorlagen ──────────────────────────────────────────────────── */
+
+.wa-vorlagen {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+}
+
+.wa-vorlage {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.wa-vorlage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.wa-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.wa-text {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-h);
+  margin: 0;
+}
+
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+
+.inline-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.kurs-form {
+  display: grid;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-row .form-field,
+.form-row label {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+}
+
+select option {
+  background: #211913;
+}
