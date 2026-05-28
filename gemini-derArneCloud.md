@@ -1,4 +1,4 @@
-# gemini-derArnecloud — Tech-Stack Kompendium
+# gemini-derArneCloud — Tech-Stack Kompendium
 
 > Komprimierte Referenz aller Technologien, Services und Werkzeuge im aom1941-Ökosystem.  
 > Stand: 2025 · HRFR-v2 · `[TIME]_[DOM-PROJ]_[DETAIL]--[USER].[EXT]`
@@ -46,7 +46,7 @@ iPad (SwiftUI)       ──┘
 | Prefix | Domain | Repo-Beispiel | Kern-Technologien |
 |--------|--------|---------------|-------------------|
 | `arc` | Architektur | `aom-arc-suite` | Python · React · PostgreSQL · HTML |
-| `sys` | System/Infra | `aom-sys-derarnecloud` | Docker · Traefik · CachyOS · Tailscale · Deno |
+| `sys` | System/Infra | `aom-sys-infra-services` | Docker · Traefik · CachyOS · Tailscale · Deno |
 | `kre` | Kreativ/ML | `aom-kre-picas` | Swift · PyTorch · FastAPI · CLIP · MobileNetV3 |
 | `cup` | ClipUp Media | `aom-cup-bureaucracy` | React · Node.js |
 | `pke` | Pilzkeramik | `aom-pke-workshop` | Web (Werkstatt-Management) |
@@ -122,7 +122,7 @@ Kern-Features (Auswahl aus ~300 installierten):
 - SwiftUI iPad-Annotator + PyTorch MobileNetV3 + FastAPI
 - `Swift` `PyTorch` `FastAPI` `CLIP`
 
-### aom-sys-derarnecloud — Self-Hosted Cloud
+### aom-sys-infra-services — Self-Hosted Cloud
 - Nextcloud + Docker + Deno-Tooling
 - Content-Media-Sortierung (TypeScript/Deno)
 - `Deno` `TypeScript` `Docker` `Nextcloud`
@@ -160,4 +160,4 @@ Dependabot (devcontainers, wöchentlich)
 
 ---
 
-<sub>gemini-derArnecloud.md · aom1941 · komprimiert aus README.md + aom-sys-derarnecloud + Projektlandschaft · 2025</sub>
+<sub>gemini-derArneCloud.md · aom1941 · komprimiert aus README.md + aom-sys-infra-services + Projektlandschaft · 2025</sub>
