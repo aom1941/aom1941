@@ -1,9 +1,13 @@
 import os
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .catalog import BLUEPRINT
+from .database import Base, engine
+from .routers import kurse, teilnehmer
 
 
 def parse_allowed_origins() -> list[str]:
@@ -14,17 +18,24 @@ def parse_allowed_origins() -> list[str]:
     return [origin.strip() for origin in raw_value.split(",") if origin.strip()]
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="Keramikwerkstatt API",
     version="0.1.0",
     summary="MVP-API für Werkstattorganisation, Brennplanung, Kurse und Dokumente.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=parse_allowed_origins(),
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -46,3 +57,7 @@ def root() -> dict[str, str]:
         "docs": "/docs",
         "blueprint": "/api/blueprint",
     }
+
+
+app.include_router(kurse.router)
+app.include_router(teilnehmer.router)

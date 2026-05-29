@@ -1,5 +1,10 @@
-from pydantic import BaseModel
+from datetime import date, datetime, time
+from typing import Optional
 
+from pydantic import BaseModel, ConfigDict
+
+
+# ── Blueprint schemas (existing) ──────────────────────────────────────────────
 
 class Metric(BaseModel):
     label: str
@@ -56,3 +61,100 @@ class Blueprint(BaseModel):
     automations: list[AutomationCard]
     phases: list[PhaseCard]
     stack: list[StackLayer]
+
+
+# ── Kurs ──────────────────────────────────────────────────────────────────────
+
+class KursCreate(BaseModel):
+    name: str
+    beschreibung: Optional[str] = None
+    max_teilnehmer: int = 10
+    preis_eur: Optional[float] = None
+    status: str = "geplant"
+
+
+class KursUpdate(BaseModel):
+    name: Optional[str] = None
+    beschreibung: Optional[str] = None
+    max_teilnehmer: Optional[int] = None
+    preis_eur: Optional[float] = None
+    status: Optional[str] = None
+
+
+class KursResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    beschreibung: Optional[str]
+    max_teilnehmer: int
+    preis_eur: Optional[float]
+    status: str
+    erstellt_am: datetime
+
+
+# ── KursTermin ────────────────────────────────────────────────────────────────
+
+class KursTerminCreate(BaseModel):
+    datum: date
+    start_uhrzeit: Optional[time] = None
+    end_uhrzeit: Optional[time] = None
+    notizen: Optional[str] = None
+
+
+class KursTerminResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kurs_id: int
+    datum: date
+    start_uhrzeit: Optional[time]
+    end_uhrzeit: Optional[time]
+    notizen: Optional[str]
+
+
+# ── Teilnehmer ────────────────────────────────────────────────────────────────
+
+class TeilnehmerCreate(BaseModel):
+    vorname: str
+    nachname: str
+    telefon: Optional[str] = None
+    email: Optional[str] = None
+    notizen: Optional[str] = None
+
+
+class TeilnehmerResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    vorname: str
+    nachname: str
+    telefon: Optional[str]
+    email: Optional[str]
+    notizen: Optional[str]
+    erstellt_am: datetime
+
+
+# ── Anmeldung ─────────────────────────────────────────────────────────────────
+
+class AnmeldungCreate(BaseModel):
+    teilnehmer_id: int
+    status: str = "bestaetigt"
+
+
+class AnmeldungWithTeilnehmer(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kurs_id: int
+    teilnehmer_id: int
+    status: str
+    angemeldet_am: datetime
+    teilnehmer: TeilnehmerResponse
+
+
+# ── KursDetail (full) ─────────────────────────────────────────────────────────
+
+class KursDetail(KursResponse):
+    termine: list[KursTerminResponse] = []
+    anmeldungen: list[AnmeldungWithTeilnehmer] = []
