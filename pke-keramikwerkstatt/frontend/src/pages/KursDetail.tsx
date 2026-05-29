@@ -4,6 +4,7 @@ import {
   api,
   type KursDetail as KursDetailType,
   type KursTerminCreate,
+  type MaterialResponse,
   type TeilnehmerCreate,
 } from '../api'
 import { WhatsappVorlage } from '../components/WhatsappVorlage'
@@ -45,6 +46,11 @@ export function KursDetail() {
   const [anmeldungError, setAnmeldungError] = useState<string | null>(null)
   const [waOpen, setWaOpen] = useState<number | null>(null)
 
+  // Material state
+  const [alleMaterialien, setAlleMaterialien] = useState<MaterialResponse[]>([])
+  const [matForm, setMatForm] = useState({ material_id: '', menge: '' })
+  const [matError, setMatError] = useState<string | null>(null)
+
   function reload() {
     api.kurse
       .get(kursId)
@@ -55,6 +61,7 @@ export function KursDetail() {
 
   useEffect(() => {
     reload()
+    api.materialien.list().then(setAlleMaterialien).catch(() => {})
   }, [kursId])
 
   async function handleDeleteKurs() {
@@ -85,6 +92,28 @@ export function KursDetail() {
       reload()
     } catch {
       setTerminError('Termin konnte nicht gelöscht werden.')
+    }
+  }
+
+  async function handleAddMaterial(e: React.FormEvent) {
+    e.preventDefault()
+    setMatError(null)
+    if (!matForm.material_id || !matForm.menge) return
+    try {
+      await api.materialien.addToKurs(kursId, Number(matForm.material_id), Number(matForm.menge))
+      setMatForm({ material_id: '', menge: '' })
+      reload()
+    } catch (err) {
+      setMatError(err instanceof Error ? err.message : 'Fehler beim Hinzufügen.')
+    }
+  }
+
+  async function handleRemoveMaterial(kmId: number) {
+    try {
+      await api.materialien.removeFromKurs(kursId, kmId)
+      reload()
+    } catch {
+      setMatError('Entfernen fehlgeschlagen.')
     }
   }
 
@@ -326,6 +355,105 @@ export function KursDetail() {
             </label>
           </div>
           <button type="submit" className="btn-primary">Anmelden</button>
+        </form>
+      </article>
+
+      {/* Materialplan */}
+      <article className="panel">
+        <div className="panel-heading">
+          <h2>Materialplan</h2>
+          <p>Bedarf wird aus Menge × bestätigte Teilnehmer berechnet.</p>
+        </div>
+
+        {kurs.materialien.length > 0 ? (
+          <>
+            <table className="teilnehmer-table">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Menge / TN</th>
+                  <th>Gesamtbedarf</th>
+                  <th>Kosten / TN</th>
+                  <th>Verfügbar</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {kurs.materialien.map((km) => {
+                  const gesamtbedarf = km.menge_pro_teilnehmer * confirmed
+                  const kostenPro = km.material.preis_pro_einheit != null
+                    ? km.menge_pro_teilnehmer * km.material.preis_pro_einheit
+                    : null
+                  const ausreichend = km.material.bestand >= gesamtbedarf
+                  return (
+                    <tr key={km.id}>
+                      <td><strong style={{ color: 'var(--text-h)' }}>{km.material.name}</strong></td>
+                      <td>{km.menge_pro_teilnehmer} {km.material.einheit}</td>
+                      <td><strong>{gesamtbedarf.toFixed(2)} {km.material.einheit}</strong></td>
+                      <td>{kostenPro != null ? `${kostenPro.toFixed(2)} €` : '—'}</td>
+                      <td>{km.material.bestand} {km.material.einheit}</td>
+                      <td>
+                        {ausreichend
+                          ? <span className="status-badge status-aktiv">✓ Ausreichend</span>
+                          : <span className="status-badge status-abgesagt">⚠ Zu wenig</span>}
+                      </td>
+                      <td>
+                        <button className="btn-icon-danger" type="button"
+                          onClick={() => void handleRemoveMaterial(km.id)} title="Entfernen">✕</button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            {(() => {
+              const totalKosten = kurs.materialien.reduce((sum, km) => {
+                if (km.material.preis_pro_einheit == null) return sum
+                return sum + km.menge_pro_teilnehmer * km.material.preis_pro_einheit
+              }, 0)
+              return totalKosten > 0 ? (
+                <p className="mat-kosten-summe">
+                  Materialkosten gesamt: <strong>{totalKosten.toFixed(2)} € / Teilnehmer</strong>
+                  {confirmed > 0 && <span> · {(totalKosten * confirmed).toFixed(2)} € für {confirmed} TN</span>}
+                </p>
+              ) : null
+            })()}
+          </>
+        ) : (
+          <p className="muted-text">Noch kein Material für diesen Kurs eingetragen.</p>
+        )}
+
+        {matError && <p className="notice warning">{matError}</p>}
+        <form className="inline-form" onSubmit={(e) => void handleAddMaterial(e)}>
+          <h3>Material hinzufügen</h3>
+          {alleMaterialien.length === 0
+            ? <p className="muted-text">Keine Materialien vorhanden — zuerst unter <Link to="/material">Material</Link> anlegen.</p>
+            : (
+              <div className="form-row">
+                <label>
+                  Material *
+                  <select required value={matForm.material_id}
+                    onChange={(e) => setMatForm((f) => ({ ...f, material_id: e.target.value }))}>
+                    <option value="">Bitte wählen…</option>
+                    {alleMaterialien.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.bestand} {m.einheit} vorrätig)
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Menge pro Teilnehmer *
+                  <input type="number" required min={0.001} step="0.001" value={matForm.menge}
+                    onChange={(e) => setMatForm((f) => ({ ...f, menge: e.target.value }))}
+                    placeholder="z. B. 1.5" />
+                </label>
+              </div>
+            )}
+          {alleMaterialien.length > 0 && (
+            <button type="submit" className="btn-primary">Hinzufügen</button>
+          )}
         </form>
       </article>
 

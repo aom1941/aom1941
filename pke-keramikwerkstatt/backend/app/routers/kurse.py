@@ -2,12 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Anmeldung, Kurs, KursTermin, Teilnehmer
+from ..models import Anmeldung, Kurs, KursMaterial, KursTermin, Material, Teilnehmer
 from ..schemas import (
     AnmeldungCreate,
     AnmeldungWithTeilnehmer,
     KursCreate,
     KursDetail,
+    KursMaterialCreate,
+    KursMaterialResponse,
     KursResponse,
     KursTerminCreate,
     KursTerminResponse,
@@ -108,3 +110,36 @@ def create_anmeldung(kurs_id: int, payload: AnmeldungCreate, db: Session = Depen
     db.commit()
     db.refresh(anmeldung)
     return anmeldung
+
+
+@router.post("/{kurs_id}/materialien", response_model=KursMaterialResponse, status_code=201)
+def add_kurs_material(kurs_id: int, payload: KursMaterialCreate, db: Session = Depends(get_db)):
+    if not db.query(Kurs).filter(Kurs.id == kurs_id).first():
+        raise HTTPException(status_code=404, detail="Kurs nicht gefunden")
+    if not db.query(Material).filter(Material.id == payload.material_id).first():
+        raise HTTPException(status_code=404, detail="Material nicht gefunden")
+    existing = (
+        db.query(KursMaterial)
+        .filter(KursMaterial.kurs_id == kurs_id, KursMaterial.material_id == payload.material_id)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=409, detail="Material bereits im Kurs eingetragen")
+    km = KursMaterial(kurs_id=kurs_id, **payload.model_dump())
+    db.add(km)
+    db.commit()
+    db.refresh(km)
+    return km
+
+
+@router.delete("/{kurs_id}/materialien/{km_id}", status_code=204)
+def delete_kurs_material(kurs_id: int, km_id: int, db: Session = Depends(get_db)):
+    km = (
+        db.query(KursMaterial)
+        .filter(KursMaterial.id == km_id, KursMaterial.kurs_id == kurs_id)
+        .first()
+    )
+    if not km:
+        raise HTTPException(status_code=404, detail="Kursmaterial nicht gefunden")
+    db.delete(km)
+    db.commit()

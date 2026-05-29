@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 
 
 # ── Blueprint schemas (existing) ──────────────────────────────────────────────
@@ -153,11 +153,76 @@ class AnmeldungWithTeilnehmer(BaseModel):
     teilnehmer: TeilnehmerResponse
 
 
+# ── Material ──────────────────────────────────────────────────────────────────
+
+KATEGORIEN = ["Ton", "Glasur", "Werkzeug", "Verbrauchsmaterial", "Sonstiges"]
+
+
+class MaterialCreate(BaseModel):
+    name: str
+    einheit: str = "kg"
+    bestand: float = 0.0
+    mindestbestand: Optional[float] = None
+    preis_pro_einheit: Optional[float] = None
+    kategorie: str = "Sonstiges"
+    notizen: Optional[str] = None
+
+
+class MaterialUpdate(BaseModel):
+    name: Optional[str] = None
+    einheit: Optional[str] = None
+    bestand: Optional[float] = None
+    mindestbestand: Optional[float] = None
+    preis_pro_einheit: Optional[float] = None
+    kategorie: Optional[str] = None
+    notizen: Optional[str] = None
+
+
+class MaterialResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    einheit: str
+    bestand: float
+    mindestbestand: Optional[float]
+    preis_pro_einheit: Optional[float]
+    kategorie: str
+    notizen: Optional[str]
+
+    @computed_field
+    @property
+    def unter_mindestbestand(self) -> bool:
+        return (
+            self.mindestbestand is not None
+            and self.mindestbestand > 0
+            and float(self.bestand) < float(self.mindestbestand)
+        )
+
+
+class KursMaterialCreate(BaseModel):
+    material_id: int
+    menge_pro_teilnehmer: float
+    notizen: Optional[str] = None
+
+
+class KursMaterialResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kurs_id: int
+    material_id: int
+    menge_pro_teilnehmer: float
+    notizen: Optional[str]
+    material: MaterialResponse
+
+
 # ── KursDetail (full) ─────────────────────────────────────────────────────────
 
 class KursDetail(KursResponse):
     termine: list[KursTerminResponse] = []
     anmeldungen: list[AnmeldungWithTeilnehmer] = []
+    materialien: list[KursMaterialResponse] = []
 
 
 # ── Teilnehmer list item (with course count) ──────────────────────────────────
@@ -217,6 +282,16 @@ class NaechsterTermin(BaseModel):
     max_teilnehmer: int
 
 
+class MaterialWarnung(BaseModel):
+    id: int
+    name: str
+    einheit: str
+    bestand: float
+    mindestbestand: float
+    fehlend: float
+
+
 class DashboardResponse(BaseModel):
     stats: DashboardStats
     naechste_termine: list[NaechsterTermin]
+    materialwarnungen: list[MaterialWarnung]

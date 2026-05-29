@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .catalog import BLUEPRINT
 from .database import Base, engine
-from .routers import dashboard, kurse, teilnehmer
+from .routers import dashboard, kurse, materialien, teilnehmer
 
 
 def parse_allowed_origins() -> list[str]:
@@ -61,4 +61,5 @@ def root() -> dict[str, str]:
 
 app.include_router(dashboard.router)
 app.include_router(kurse.router)
+app.include_router(materialien.router)
 app.include_router(teilnehmer.router)

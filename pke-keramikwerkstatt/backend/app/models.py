@@ -34,6 +34,7 @@ class Kurs(Base):
 
     termine = relationship("KursTermin", back_populates="kurs", cascade="all, delete-orphan")
     anmeldungen = relationship("Anmeldung", back_populates="kurs", cascade="all, delete-orphan")
+    materialien = relationship("KursMaterial", back_populates="kurs", cascade="all, delete-orphan")
 
 
 class KursTermin(Base):
@@ -77,3 +78,34 @@ class Anmeldung(Base):
 
     kurs = relationship("Kurs", back_populates="anmeldungen")
     teilnehmer = relationship("Teilnehmer", back_populates="anmeldungen")
+
+
+class Material(Base):
+    __tablename__ = "materialien"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    einheit = Column(String(20), nullable=False, default="kg")
+    bestand = Column(Numeric(10, 3), nullable=False, default=0)
+    mindestbestand = Column(Numeric(10, 3), nullable=True)
+    preis_pro_einheit = Column(Numeric(10, 2), nullable=True)
+    kategorie = Column(String(50), nullable=False, default="Sonstiges")
+    notizen = Column(Text, nullable=True)
+
+    kurs_materialien = relationship("KursMaterial", back_populates="material")
+
+
+class KursMaterial(Base):
+    __tablename__ = "kurs_materialien"
+    __table_args__ = (
+        UniqueConstraint("kurs_id", "material_id", name="uq_kurs_material"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    kurs_id = Column(Integer, ForeignKey("kurse.id", ondelete="CASCADE"), nullable=False)
+    material_id = Column(Integer, ForeignKey("materialien.id", ondelete="CASCADE"), nullable=False)
+    menge_pro_teilnehmer = Column(Numeric(10, 3), nullable=False)
+    notizen = Column(Text, nullable=True)
+
+    kurs = relationship("Kurs", back_populates="materialien")
+    material = relationship("Material", back_populates="kurs_materialien")

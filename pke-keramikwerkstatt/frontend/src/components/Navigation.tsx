@@ -4,6 +4,7 @@ const LINKS = [
   { to: '/', label: 'Dashboard', match: (p: string) => p === '/' },
   { to: '/kurse', label: 'Kurse', match: (p: string) => p.startsWith('/kurse') },
   { to: '/teilnehmer', label: 'Teilnehmer', match: (p: string) => p.startsWith('/teilnehmer') },
+  { to: '/material', label: 'Material', match: (p: string) => p.startsWith('/material') },
   { to: '/blueprint', label: 'Blueprint', match: (p: string) => p === '/blueprint' },
 ]
 

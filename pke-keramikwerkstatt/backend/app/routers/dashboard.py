@@ -5,8 +5,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Anmeldung, Kurs, KursTermin, Teilnehmer
-from ..schemas import DashboardResponse, DashboardStats, NaechsterTermin
+from ..models import Anmeldung, Kurs, KursTermin, Material, Teilnehmer
+from ..schemas import DashboardResponse, DashboardStats, MaterialWarnung, NaechsterTermin
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -51,6 +51,21 @@ def get_dashboard(db: Session = Depends(get_db)):
         for t, k, cnt in termine_rows
     ]
 
+    # Materials below minimum stock
+    materialwarnungen = []
+    for m in db.query(Material).filter(Material.mindestbestand.isnot(None)).all():
+        if m.mindestbestand and float(m.bestand) < float(m.mindestbestand):
+            materialwarnungen.append(
+                MaterialWarnung(
+                    id=m.id,
+                    name=m.name,
+                    einheit=m.einheit,
+                    bestand=float(m.bestand),
+                    mindestbestand=float(m.mindestbestand),
+                    fehlend=round(float(m.mindestbestand) - float(m.bestand), 3),
+                )
+            )
+
     return DashboardResponse(
         stats=DashboardStats(
             kurse_gesamt=kurse_gesamt,
@@ -59,4 +74,5 @@ def get_dashboard(db: Session = Depends(get_db)):
             anmeldungen_gesamt=anmeldungen_gesamt,
         ),
         naechste_termine=naechste_termine,
+        materialwarnungen=materialwarnungen,
     )

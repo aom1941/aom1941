@@ -6,6 +6,7 @@ import { Dashboard } from './pages/Dashboard'
 import { KursDetail } from './pages/KursDetail'
 import { KursForm } from './pages/KursForm'
 import { KursListe } from './pages/KursListe'
+import { MaterialListe } from './pages/MaterialListe'
 import { TeilnehmerListe } from './pages/TeilnehmerListe'
 
 // ── Blueprint types & data (kept for /blueprint route) ───────────────────────
@@ -248,6 +249,7 @@ function App() {
         <Route path="/kurse/:id" element={<KursDetail />} />
         <Route path="/kurse/:id/bearbeiten" element={<KursForm />} />
         <Route path="/teilnehmer" element={<TeilnehmerListe />} />
+        <Route path="/material" element={<MaterialListe />} />
         <Route path="/blueprint" element={<BlueprintPage />} />
       </Routes>
     </BrowserRouter>

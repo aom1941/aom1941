@@ -129,6 +129,32 @@ export function Dashboard() {
         )}
       </article>
 
+      {/* Material warnings */}
+      {data.materialwarnungen.length > 0 && (
+        <article className="panel">
+          <div className="panel-heading">
+            <h2>⚠ Nachbestellen</h2>
+            <p>Diese Materialien sind unter den eingestellten Mindestbestand gefallen.</p>
+          </div>
+          <table className="teilnehmer-table">
+            <thead>
+              <tr><th>Material</th><th>Bestand</th><th>Mindest</th><th>Fehlt</th><th></th></tr>
+            </thead>
+            <tbody>
+              {data.materialwarnungen.map((w) => (
+                <tr key={w.id}>
+                  <td><strong style={{ color: 'var(--text-h)' }}>{w.name}</strong></td>
+                  <td style={{ color: '#f87171' }}>{w.bestand} {w.einheit}</td>
+                  <td>{w.mindestbestand} {w.einheit}</td>
+                  <td><strong style={{ color: '#fbbf24' }}>+{w.fehlend} {w.einheit}</strong></td>
+                  <td><Link to="/material" className="btn-copy">Bestand anpassen</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </article>
+      )}
+
       {/* Quick links */}
       <div className="quick-links">
         <Link to="/kurse" className="quick-link-card">
@@ -138,6 +164,10 @@ export function Dashboard() {
         <Link to="/teilnehmer" className="quick-link-card">
           <strong>Alle Teilnehmer</strong>
           <span>Teilnehmerliste öffnen</span>
+        </Link>
+        <Link to="/material" className="quick-link-card">
+          <strong>Material</strong>
+          <span>Bestände verwalten</span>
         </Link>
       </div>
     </div>

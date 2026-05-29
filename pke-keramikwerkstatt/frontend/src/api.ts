@@ -39,6 +39,7 @@ export interface AnmeldungWithTeilnehmer {
 export interface KursDetail extends KursResponse {
   termine: KursTerminResponse[]
   anmeldungen: AnmeldungWithTeilnehmer[]
+  materialien: KursMaterialResponse[]
 }
 
 export interface KursCreate {
@@ -92,6 +93,46 @@ export interface TeilnehmerWithKurse {
   anmeldungen: AnmeldungWithKurs[]
 }
 
+export interface MaterialResponse {
+  id: number
+  name: string
+  einheit: string
+  bestand: number
+  mindestbestand: number | null
+  preis_pro_einheit: number | null
+  kategorie: string
+  notizen: string | null
+  unter_mindestbestand: boolean
+}
+
+export interface MaterialCreate {
+  name: string
+  einheit: string
+  bestand: number
+  mindestbestand?: number
+  preis_pro_einheit?: number
+  kategorie: string
+  notizen?: string
+}
+
+export interface KursMaterialResponse {
+  id: number
+  kurs_id: number
+  material_id: number
+  menge_pro_teilnehmer: number
+  notizen: string | null
+  material: MaterialResponse
+}
+
+export interface MaterialWarnung {
+  id: number
+  name: string
+  einheit: string
+  bestand: number
+  mindestbestand: number
+  fehlend: number
+}
+
 export interface DashboardStats {
   kurse_gesamt: number
   kurse_aktiv: number
@@ -113,6 +154,7 @@ export interface NaechsterTermin {
 export interface DashboardResponse {
   stats: DashboardStats
   naechste_termine: NaechsterTermin[]
+  materialwarnungen: MaterialWarnung[]
 }
 
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -149,6 +191,21 @@ export const api = {
         method: 'POST',
         body: JSON.stringify({ teilnehmer_id: teilnehmerId, status }),
       }),
+  },
+  materialien: {
+    list: () => apiFetch<MaterialResponse[]>('/api/materialien'),
+    create: (data: MaterialCreate) =>
+      apiFetch<MaterialResponse>('/api/materialien', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: number, data: Partial<MaterialCreate>) =>
+      apiFetch<MaterialResponse>(`/api/materialien/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: number) => apiFetch<void>(`/api/materialien/${id}`, { method: 'DELETE' }),
+    addToKurs: (kursId: number, materialId: number, mengePro: number) =>
+      apiFetch<KursMaterialResponse>(`/api/kurse/${kursId}/materialien`, {
+        method: 'POST',
+        body: JSON.stringify({ material_id: materialId, menge_pro_teilnehmer: mengePro }),
+      }),
+    removeFromKurs: (kursId: number, kmId: number) =>
+      apiFetch<void>(`/api/kurse/${kursId}/materialien/${kmId}`, { method: 'DELETE' }),
   },
   teilnehmer: {
     list: () => apiFetch<TeilnehmerListItem[]>('/api/teilnehmer'),
