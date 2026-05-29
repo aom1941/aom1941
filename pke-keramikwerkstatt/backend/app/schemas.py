@@ -158,3 +158,65 @@ class AnmeldungWithTeilnehmer(BaseModel):
 class KursDetail(KursResponse):
     termine: list[KursTerminResponse] = []
     anmeldungen: list[AnmeldungWithTeilnehmer] = []
+
+
+# ── Teilnehmer list item (with course count) ──────────────────────────────────
+
+class TeilnehmerListItem(BaseModel):
+    id: int
+    vorname: str
+    nachname: str
+    telefon: Optional[str]
+    email: Optional[str]
+    erstellt_am: datetime
+    anmeldungen_count: int
+
+
+# ── Teilnehmer detail (with Kurs history) ─────────────────────────────────────
+
+class AnmeldungWithKurs(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kurs_id: int
+    status: str
+    angemeldet_am: datetime
+    kurs: KursResponse
+
+
+class TeilnehmerWithKurse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    vorname: str
+    nachname: str
+    telefon: Optional[str]
+    email: Optional[str]
+    notizen: Optional[str]
+    erstellt_am: datetime
+    anmeldungen: list[AnmeldungWithKurs] = []
+
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
+class DashboardStats(BaseModel):
+    kurse_gesamt: int
+    kurse_aktiv: int
+    teilnehmer_gesamt: int
+    anmeldungen_gesamt: int
+
+
+class NaechsterTermin(BaseModel):
+    termin_id: int
+    datum: date
+    start_uhrzeit: Optional[time]
+    kurs_id: int
+    kurs_name: str
+    kurs_status: str
+    anmeldungen: int
+    max_teilnehmer: int
+
+
+class DashboardResponse(BaseModel):
+    stats: DashboardStats
+    naechste_termine: list[NaechsterTermin]

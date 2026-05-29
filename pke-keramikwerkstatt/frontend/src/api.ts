@@ -63,6 +63,58 @@ export interface TeilnehmerCreate {
   email?: string
 }
 
+export interface TeilnehmerListItem {
+  id: number
+  vorname: string
+  nachname: string
+  telefon: string | null
+  email: string | null
+  erstellt_am: string
+  anmeldungen_count: number
+}
+
+export interface AnmeldungWithKurs {
+  id: number
+  kurs_id: number
+  status: string
+  angemeldet_am: string
+  kurs: KursResponse
+}
+
+export interface TeilnehmerWithKurse {
+  id: number
+  vorname: string
+  nachname: string
+  telefon: string | null
+  email: string | null
+  notizen: string | null
+  erstellt_am: string
+  anmeldungen: AnmeldungWithKurs[]
+}
+
+export interface DashboardStats {
+  kurse_gesamt: number
+  kurse_aktiv: number
+  teilnehmer_gesamt: number
+  anmeldungen_gesamt: number
+}
+
+export interface NaechsterTermin {
+  termin_id: number
+  datum: string
+  start_uhrzeit: string | null
+  kurs_id: number
+  kurs_name: string
+  kurs_status: string
+  anmeldungen: number
+  max_teilnehmer: number
+}
+
+export interface DashboardResponse {
+  stats: DashboardStats
+  naechste_termine: NaechsterTermin[]
+}
+
 async function apiFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -99,7 +151,12 @@ export const api = {
       }),
   },
   teilnehmer: {
+    list: () => apiFetch<TeilnehmerListItem[]>('/api/teilnehmer'),
+    get: (id: number) => apiFetch<TeilnehmerWithKurse>(`/api/teilnehmer/${id}`),
     create: (data: TeilnehmerCreate) =>
       apiFetch<TeilnehmerResponse>('/api/teilnehmer', { method: 'POST', body: JSON.stringify(data) }),
+  },
+  dashboard: {
+    get: () => apiFetch<DashboardResponse>('/api/dashboard'),
   },
 }

@@ -147,7 +147,7 @@ export function KursForm() {
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => navigate(kursId ? `/kurse/${kursId}` : '/')}
+              onClick={() => navigate(kursId ? `/kurse/${kursId}` : '/kurse')}
             >
               Abbrechen
             </button>

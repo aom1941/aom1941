@@ -61,7 +61,7 @@ export function KursDetail() {
     if (!confirm('Kurs wirklich löschen?')) return
     try {
       await api.kurse.delete(kursId)
-      navigate('/')
+      navigate('/kurse')
     } catch {
       setError('Löschen fehlgeschlagen.')
     }
@@ -330,7 +330,7 @@ export function KursDetail() {
       </article>
 
       <div>
-        <Link to="/" className="btn-secondary">← Zurück zur Kursliste</Link>
+        <Link to="/kurse" className="btn-secondary">← Zurück zur Kursliste</Link>
       </div>
     </div>
   )

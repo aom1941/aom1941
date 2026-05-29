@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { Navigation } from './components/Navigation'
+import { Dashboard } from './pages/Dashboard'
 import { KursDetail } from './pages/KursDetail'
 import { KursForm } from './pages/KursForm'
 import { KursListe } from './pages/KursListe'
+import { TeilnehmerListe } from './pages/TeilnehmerListe'
 
 // ── Blueprint types & data (kept for /blueprint route) ───────────────────────
 
@@ -240,10 +242,12 @@ function App() {
     <BrowserRouter>
       <Navigation />
       <Routes>
-        <Route path="/" element={<KursListe />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/kurse" element={<KursListe />} />
         <Route path="/kurse/neu" element={<KursForm />} />
         <Route path="/kurse/:id" element={<KursDetail />} />
         <Route path="/kurse/:id/bearbeiten" element={<KursForm />} />
+        <Route path="/teilnehmer" element={<TeilnehmerListe />} />
         <Route path="/blueprint" element={<BlueprintPage />} />
       </Routes>
     </BrowserRouter>
