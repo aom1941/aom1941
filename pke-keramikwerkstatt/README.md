@@ -1,83 +1,134 @@
-# pke-keramikwerkstatt — MVP-Setup
+# pke-keramikwerkstatt
 
-Self-hosted MVP für eine Keramikwerkstatt-Organisations-Webapp mit klarer Trennung von Werkstattabläufen, Buchung/Produktion und Dokumentenorganisation.
+Self-hosted Organisations-Webapp für ein Keramik-Atelier — Kursverwaltung, Teilnehmerkommunikation, Materialplanung und Dashboard.
+
+## Features
+
+### Dashboard
+- Tagesüberblick mit nächsten Kursterminen und Auslastungsbalken
+- Statistiken: Kurse, Teilnehmer, Anmeldungen auf einen Blick
+- Materialwarnungen wenn Bestände unter Mindestmenge fallen
+- Schnellzugriff auf alle Module
+
+### Kursverwaltung
+- Kurse anlegen mit Name, Beschreibung, Kapazität, Preis und Status
+- Termine (Datum, Uhrzeit) pro Kurs verwalten
+- Status: Geplant → Aktiv → Abgeschlossen / Abgesagt
+
+### Teilnehmerverwaltung
+- Teilnehmer direkt bei der Anmeldung erfassen (Vorname, Nachname, Telefon, E-Mail)
+- Status: Bestätigt oder Warteliste
+- Suchfunktion mit aufklappbarer Kurshistorie pro Person
+
+### WhatsApp-Vorlagen
+- Buchungsbestätigung und Kurserinnerung als kopierfertige Nachrichten
+- Automatisch mit Kursname, Datum und Uhrzeit befüllt
+
+### Materialplanung (Wirtschaften)
+- Material anlegen: Ton, Glasuren, Werkzeuge mit Bestand, Mindestmenge und Preis
+- Materialplan pro Kurs: Menge pro Teilnehmer → Gesamtbedarf automatisch berechnet
+- Materialkosten pro Teilnehmer und für den gesamten Kurs
+- Statusanzeige: Bestand ausreichend / Nachbestellen nötig
 
 ## Stack
 
-- **Frontend:** React + Vite
-- **Backend:** FastAPI
-- **Datenbank:** PostgreSQL
-- **Betrieb:** Docker Compose
-- **Dateien/Bilder:** S3-kompatibel oder NAS/Lokalspeicher
-- **Dokumente/OCR:** optional per Paperless-/OCR-Anbindung
+| Schicht | Technologie |
+|--------|------------|
+| Frontend | React 19 + Vite + TypeScript + React Router v7 |
+| Backend | FastAPI + SQLAlchemy 2.0 + Pydantic v2 |
+| Datenbank | PostgreSQL 16 |
+| Betrieb | Docker Compose |
+| Proxy | nginx |
 
-## MVP-Scope
-
-- Kundenverwaltung
-- Auftrags- und Werkstückverwaltung
-- Brennkalender
-- Kurs- und Workshop-Buchungen
-- Rechnungs- und Dokumentenablage
-
-## Verzeichnis
-
-```text
-pke-keramikwerkstatt/
-├── backend/              # FastAPI API + Blueprint-Daten
-├── frontend/             # React UI für Rollen, Module, Seiten und Roadmap
-├── .env.example          # Beispielkonfiguration
-└── docker-compose.yml    # Lokaler self-hosted Start
-```
+DSGVO-freundlich: läuft vollständig self-hosted, keine Drittanbieter-Dienste.
 
 ## Schnellstart
 
 ```bash
-cd <dein-clone>/pke-keramikwerkstatt
+git clone https://github.com/pilzkeramik/pke-keramikwerkstatt.git
+cd pke-keramikwerkstatt
 cp .env.example .env
 docker compose up --build
 ```
 
 Danach:
+- **App:** [http://localhost:8080](http://localhost:8080)
+- **API-Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-- Frontend: `http://localhost:8080`
-- Backend: `http://localhost:8000`
-- API: `http://localhost:8000/api/blueprint`
+Die Datenbanktabellen werden beim ersten Start automatisch angelegt.
 
-## Lokal ohne Docker
+## Lokal entwickeln (ohne Docker)
 
 ### Backend
 
 ```bash
-cd <dein-clone>/pke-keramikwerkstatt/backend
+cd backend
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+DATABASE_URL=postgresql://keramik:keramik@localhost:5432/keramikwerkstatt \
+  uvicorn app.main:app --reload
 ```
 
 ### Frontend
 
 ```bash
-cd <dein-clone>/pke-keramikwerkstatt/frontend
+cd frontend
 npm install
-npm run dev
+npm run dev   # läuft auf http://localhost:5173, proxied /api → localhost:8000
 ```
 
-## Modulkern
+## Verzeichnis
 
-- **CRM:** Kund:innen, Ansprechpartner, Status, Notizen
-- **Werkstattplanung:** Drehen, Trocknen, Glasieren, Brennen, Abholung
-- **Brennkalender:** Ofenkapazität, Temperatur, Status, Verantwortliche
-- **Buchungen:** Kurse, offene Werkstatt, Einzeltermine, Warteliste
-- **Dokumente:** Rechnungen, Angebote, Lieferscheine, Formulare
-- **Inventar:** Ton, Glasuren, Werkzeuge, Mindestbestände
-- **Medienarchiv:** Werkstückfotos, Referenzen, Zustandsdokumentation
+```
+pke-keramikwerkstatt/
+├── backend/
+│   ├── app/
+│   │   ├── main.py          # FastAPI-App, CORS, Lifespan
+│   │   ├── models.py        # SQLAlchemy-Modelle
+│   │   ├── schemas.py       # Pydantic v2 Schemas
+│   │   ├── database.py      # Engine + Session
+│   │   ├── catalog.py       # Blueprint-Daten
+│   │   └── routers/
+│   │       ├── kurse.py     # Kurse, Termine, Anmeldungen, Kursmaterialien
+│   │       ├── teilnehmer.py
+│   │       ├── materialien.py
+│   │       └── dashboard.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── pages/           # Dashboard, Kurse, Teilnehmer, Material
+│   │   ├── components/      # Navigation, KursCard, WhatsappVorlage
+│   │   ├── api.ts           # typisierter API-Client
+│   │   ├── App.tsx          # Router + Routes
+│   │   └── App.css          # Design-System
+│   ├── nginx.conf
+│   └── Dockerfile
+├── docker-compose.yml
+└── .env.example
+```
 
-## Nächste Ausbaustufen
+## Roadmap
 
-- Lagerlogik mit Verbrauchsbuchungen
-- Bild-/Objektarchiv mit Zustandsverlauf
-- Auswertungen zu Umsatz, Materialverbrauch und Auslastung
-- OCR/RAG für Rechnungen und Werkstattdokumente
-- E-Mail-/Messenger-Benachrichtigungen
-- Internes Tagesdashboard
+- [ ] Brennkalender (Ofenbelegung, Temperaturprofile, Status)
+- [ ] Inventarbuchungen (Materialverbrauch automatisch abziehen nach Kurs)
+- [ ] Rechnungs- und Dokumentenablage
+- [ ] Tagesprotokoll / Schichtnotizen
+- [ ] E-Mail- oder Messenger-Benachrichtigungen
+
+## Umgebungsvariablen
+
+Siehe `.env.example`. Die wichtigsten:
+
+| Variable | Standard | Beschreibung |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql://keramik:keramik@postgres:5432/keramikwerkstatt` | PostgreSQL-Verbindung |
+| `POSTGRES_USER` | `keramik` | DB-Benutzer |
+| `POSTGRES_PASSWORD` | `keramik` | DB-Passwort (in Produktion ändern!) |
+| `POSTGRES_DB` | `keramikwerkstatt` | Datenbankname |
+| `ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:8080` | CORS-Ursprünge |
+
+---
+
+Gebaut für den echten Werkstattalltag — klein, schnell, self-hosted.
