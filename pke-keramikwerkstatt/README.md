@@ -239,4 +239,4 @@ Dokumentation as Code — Struktur ist Bedeutung
 
 ---
 
-<sub>Pilzkeramik · pke-keramikwerkstatt · Phase 1 · Stand: Mai 2025</sub>
+<sub>Pilzkeramik · pke-keramikwerkstatt · Phase 1 · Stand: Mai 2026</sub>
