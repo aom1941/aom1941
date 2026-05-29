@@ -45,7 +45,7 @@ DSGVO-freundlich: läuft vollständig self-hosted, keine Drittanbieter-Dienste.
 ## Schnellstart
 
 ```bash
-git clone https://github.com/pilzkeramik/pke-keramikwerkstatt.git
+git clone https://github.com/aom1941/pke-keramikwerkstatt.git
 cd pke-keramikwerkstatt
 cp .env.example .env
 docker compose up --build
