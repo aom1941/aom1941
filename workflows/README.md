@@ -1,6 +1,6 @@
-# workflows/ — Rechnungs-/Skizzenscanner + RAG + Hawk Eye + Buchhaltungsbot
+# ⚙️ workflows/ — Rechnungsscanner · RAG · Hawk Eye · Buchhaltungsbot
 
-> Sicherheitsgegner Nr. 1 = Alltag → automatisieren.
+> **Sicherheitsgegner Nr. 1 = Alltag → automatisieren.**
 
 Dieses Verzeichnis enthält die Workflow-Skripte für den CachyOS Self-Hosted Stack.
 Kernidee: Während dem Aufsetzen des Rechnungs- und Skizzenscanners mit RAG werden
@@ -8,9 +8,11 @@ die Cloudflare-Tunnel **parallel** gelegt — und ein kleiner Buchhaltungsbot ü
 danach das lästige Cloudflare-Gedöns gleich mit. **Hawk Eye OCR** scannt dabei alle
 Dokumente automatisch auf PII/Sensitivdaten (DSGVO).
 
+→ [Zurück zur Hauptübersicht](../README.md)
+
 ---
 
-## Übersicht
+## 📋 Übersicht
 
 | Skript | Funktion |
 |--------|----------|
@@ -22,7 +24,7 @@ Dokumente automatisch auf PII/Sensitivdaten (DSGVO).
 
 ---
 
-## Architektur
+## 🏗️ Architektur
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -62,7 +64,7 @@ Dokumente automatisch auf PII/Sensitivdaten (DSGVO).
 
 ---
 
-## Schnellstart
+## 🚀 Schnellstart
 
 ### 0. Umgebungsvariablen einrichten
 
@@ -126,7 +128,7 @@ journalctl -u aom-buchhaltungsbot@<benutzername> -f
 
 ---
 
-## Kann der Bot das Cloudflare-Gedöns abnehmen?
+## 🤖 Kann der Bot das Cloudflare-Gedöns abnehmen?
 
 **Ja.** Der Buchhaltungsbot überwacht den Cloudflare-Tunnel automatisch:
 
@@ -141,7 +143,7 @@ Sicherheitsgegner Nr. 1.
 
 ---
 
-## Services & Ports
+## 🔌 Services & Ports
 
 | Service | Port | Beschreibung |
 |---------|------|-------------|
@@ -155,7 +157,7 @@ Sicherheitsgegner Nr. 1.
 
 ---
 
-## RAG-Pipeline + Hawk Eye
+## 🔍 RAG-Pipeline + Hawk Eye
 
 ```
 Dokument → Paperless-ngx (OCR) → rag-indexer.py → Ollama Embedding → ChromaDB
@@ -182,4 +184,4 @@ Dokument → Paperless-ngx (OCR) → rag-indexer.py → Ollama Embedding → Chr
 
 ---
 
-<sub>HRFR-v2 · sys-Domain · Stand 2025</sub>
+<sub>HRFR-v2 · sys-Domain · Stand 2026</sub>
