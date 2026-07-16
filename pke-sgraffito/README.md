@@ -19,6 +19,12 @@ open pke-sgraffito/index.html
 2. **Geometrie-Regler:** Schwelle trennt hell/dunkel (Otsu-Auto-Knopf),
    *Vereinfachung* macht aus Pixelkonturen ruhige Polygone,
    *Kleinteile entfernen* wirft Rauschen raus.
+   - **Zwei Töne** — eine Engobe: dunkel = Engobe bleibt, hell = Ton freigekratzt.
+   - **Drei Töne** — zweischichtige Engobe: zwei Schwellen (Auto via
+     Multi-Otsu). Dunkel = obere Engobe bleibt, Mittelton = Stufe 1
+     (nur obere Schicht abgetragen, untere Engobe sichtbar), hell =
+     Stufe 2 (bis auf den Ton). Im Linien-Druck ist die Grenze zur
+     tiefsten Stufe gestrichelt.
 3. **Fliese:** Maß wählen (10×10 / 15×15 / 20×20 oder frei), Ausschnitt
    und Zoom schieben.
 4. **Export:**
@@ -30,8 +36,9 @@ open pke-sgraffito/index.html
 ## Technik (für Neugierige)
 
 Vanilla JS, keine Libraries:
-Graustufen → Boxblur → Schwellwert (Otsu) → Marching Squares
-(Konturen inkl. Löcher) → Ramer–Douglas–Peucker-Vereinfachung →
+Graustufen → Boxblur → Schwellwert (Otsu, bei drei Tönen
+Zwei-Schwellen-Otsu) → Marching Squares (Konturen inkl. Löcher,
+eine Ebene pro Schwelle) → Ramer–Douglas–Peucker-Vereinfachung →
 SVG mit `fill-rule="evenodd"`. Druckmaß über `mm`-Einheiten im SVG.
 
 ## Ablauf im Atelier

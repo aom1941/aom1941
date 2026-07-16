@@ -110,10 +110,16 @@
 
   <fieldset>
     <legend>1 · Geometrie</legend>
+    <label class="checkrow"><input type="radio" name="tones" value="2" checked> Zwei Töne — eine Engobe</label>
+    <label class="checkrow"><input type="radio" name="tones" value="3"> Drei Töne — zweischichtige Engobe</label>
     <label class="row">Weichzeichnen <output id="oBlur">2</output></label>
     <input type="range" id="blur" min="0" max="8" step="1" value="2">
-    <label class="row">Schwelle hell/dunkel <output id="oThresh">128</output></label>
+    <label class="row"><span id="lblThresh">Schwelle hell/dunkel</span> <output id="oThresh">128</output></label>
     <input type="range" id="thresh" min="1" max="254" step="1" value="128">
+    <div id="thresh2row" style="display:none">
+      <label class="row">Schwelle 2 (hell) <output id="oThresh2">190</output></label>
+      <input type="range" id="thresh2" min="1" max="254" step="1" value="190">
+    </div>
     <label class="row">Vereinfachung <output id="oEps">3.0</output></label>
     <input type="range" id="eps" min="0.5" max="20" step="0.5" value="3">
     <label class="row">Kleinteile entfernen <output id="oMinA">0.3 %</output></label>
@@ -145,8 +151,9 @@
     <legend>3 · Darstellung</legend>
     <label class="checkrow"><input type="radio" name="mode" value="fill" checked> Flächen (Engobe-Ansicht)</label>
     <label class="checkrow"><input type="radio" name="mode" value="line"> Nur Linien (Ritzvorlage)</label>
-    <div class="colorrow"><input type="color" id="colEngobe" value="#3b2f2b"> Engobe (bleibt stehen)</div>
-    <div class="colorrow"><input type="color" id="colTon" value="#c8a37a"> Ton (wird freigekratzt)</div>
+    <div class="colorrow"><input type="color" id="colEngobe" value="#3b2f2b"> <span id="lblEngobe">Engobe (bleibt stehen)</span></div>
+    <div class="colorrow" id="midrow" style="display:none"><input type="color" id="colMid" value="#8a6f57"> Engobe unten (Stufe 1)</div>
+    <div class="colorrow"><input type="color" id="colTon" value="#c8a37a"> <span id="lblTon">Ton (wird freigekratzt)</span></div>
     <label class="row">Foto einblenden <output id="oPhoto">0 %</output></label>
     <input type="range" id="photoOp" min="0" max="100" step="5" value="0">
     <label class="checkrow"><input type="checkbox" id="mirror"> Spiegeln (für Durchpaus-Transfer)</label>
@@ -179,10 +186,10 @@
     <summary>Ablauf im Atelier (6 Schritte)</summary>
     <ol>
       <li><strong>Fliese vorbereiten:</strong> Tonplatte ausrollen (ca. 8–10 mm), auf Maß schneiden, unter Folie bis <em>lederhart</em> anziehen lassen.</li>
-      <li><strong>Engobieren:</strong> 2–3 dünne Engobe-Schichten auftragen (Pinsel oder Tauchen), jede Schicht kurz anziehen lassen. Matt-lederhart weiterarbeiten — nicht durchtrocknen lassen.</li>
+      <li><strong>Engobieren:</strong> 2–3 dünne Engobe-Schichten auftragen (Pinsel oder Tauchen), jede Schicht kurz anziehen lassen. Matt-lederhart weiterarbeiten — nicht durchtrocknen lassen. <em>Für den Drei-Ton-Modus: zwei verschiedenfarbige Engoben übereinander (z.&nbsp;B. hell unten, dunkel oben).</em></li>
       <li><strong>Vorlage drucken:</strong> Hier „Drucken 1:1" — die Vorlage kommt maßhaltig aus dem Drucker. Für Durchpaus-Transfer <em>Spiegeln</em> aktivieren.</li>
       <li><strong>Übertragen:</strong> Vorlage auflegen und Konturen mit Kugelschreiber oder stumpfer Nadel durchdrücken — die Linien zeichnen sich im lederharten Ton ab. Alternativ: Lochpause (Konturen perforieren, mit Pigmentbeutel abtupfen).</li>
-      <li><strong>Kratzen (sGraffito):</strong> Die „Ton"-Flächen der Vorlage mit Schlingschleife / Ritzmesser freilegen. Große Flächen zuerst, feine Linien zuletzt. Kanten leicht anschrägen — brennt stabiler.</li>
+      <li><strong>Kratzen (sGraffito):</strong> Die „Ton"-Flächen der Vorlage mit Schlingschleife / Ritzmesser freilegen. Große Flächen zuerst, feine Linien zuletzt. Kanten leicht anschrägen — brennt stabiler. <em>Drei-Ton-Modus: Mittelton-Flächen nur durch die obere Engobe kratzen (untere wird sichtbar), „Ton"-Flächen (gestrichelt umrandet) durch beide Schichten bis auf den Ton.</em></li>
       <li><strong>Brennen:</strong> Langsam trocknen (Folie lüften), Schrühbrand, optional Transparentglasur + Glasurbrand.</li>
     </ol>
   </details>
@@ -198,7 +205,8 @@ const S = {
   img: null,          // HTMLImageElement
   gray: null,         // Float32Array grayscale at processing scale
   pw: 0, ph: 0,       // processing dimensions
-  contours: [],       // [{pts:[[x,y],...], area}] in processing px
+  layers: [],         // one contour set per tone layer, painted in order:
+                      // 2 Töne: [dunkel]  ·  3 Töne: [dunkel+mittel, dunkel]
   procCanvas: null,   // downscaled photo for overlay/PNG export
 };
 const MAXDIM = 1100;
@@ -215,10 +223,10 @@ drop.addEventListener('drop', e => {
 });
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
 
-const sliders = ['blur','thresh','eps','minarea','panX','panY','zoom','photoOp'];
-const outputs = { blur:'oBlur', thresh:'oThresh', eps:'oEps', minarea:'oMinA', panX:'oPanX', panY:'oPanY', zoom:'oZoom', photoOp:'oPhoto' };
+const sliders = ['blur','thresh','thresh2','eps','minarea','panX','panY','zoom','photoOp'];
+const outputs = { blur:'oBlur', thresh:'oThresh', thresh2:'oThresh2', eps:'oEps', minarea:'oMinA', panX:'oPanX', panY:'oPanY', zoom:'oZoom', photoOp:'oPhoto' };
 const fmt = {
-  blur: v => v, thresh: v => v, eps: v => Number(v).toFixed(1),
+  blur: v => v, thresh: v => v, thresh2: v => v, eps: v => Number(v).toFixed(1),
   minarea: v => v + ' %', panX: v => v + ' %', panY: v => v + ' %',
   zoom: v => v + ' %', photoOp: v => v + ' %',
 };
@@ -230,15 +238,36 @@ function scheduleUpdate(recompute) {
 for (const id of sliders) {
   $(id).addEventListener('input', () => {
     $(outputs[id]).textContent = fmt[id]($(id).value);
-    scheduleUpdate(['blur','thresh','eps','minarea'].includes(id));
+    scheduleUpdate(['blur','thresh','thresh2','eps','minarea'].includes(id));
   });
 }
 $('invert').addEventListener('change', () => { recomputeContours(); render(); });
+
+const tones = () => +document.querySelector('input[name=tones]:checked').value;
+for (const r of document.querySelectorAll('input[name=tones]')) r.addEventListener('change', onTonesChange);
+function onTonesChange() {
+  const three = tones() === 3;
+  $('thresh2row').style.display = three ? '' : 'none';
+  $('midrow').style.display = three ? '' : 'none';
+  $('lblThresh').textContent = three ? 'Schwelle 1 (dunkel)' : 'Schwelle hell/dunkel';
+  $('lblEngobe').textContent = three ? 'Engobe oben (bleibt stehen)' : 'Engobe (bleibt stehen)';
+  $('lblTon').textContent = three ? 'Ton (tiefste Stufe)' : 'Ton (wird freigekratzt)';
+  if (S.gray) { autoThreshold(); recomputeContours(); render(); }
+}
+function autoThreshold() {
+  if (!S.gray) return;
+  if (tones() === 3) {
+    const [a, b] = otsu2(S.gray);
+    $('thresh').value = a; $('oThresh').textContent = a;
+    $('thresh2').value = b; $('oThresh2').textContent = b;
+  } else {
+    const t = otsu(S.gray);
+    $('thresh').value = t; $('oThresh').textContent = t;
+  }
+}
 $('autoThresh').addEventListener('click', () => {
   if (!S.gray) return;
-  const t = otsu(S.gray);
-  $('thresh').value = t; $('oThresh').textContent = t;
-  recomputeContours(); render();
+  autoThreshold(); recomputeContours(); render();
 });
 for (const id of ['tileW','tileH']) $(id).addEventListener('input', () => scheduleUpdate(false));
 for (const b of document.querySelectorAll('button.preset')) {
@@ -248,6 +277,7 @@ for (const b of document.querySelectorAll('button.preset')) {
 }
 for (const r of document.querySelectorAll('input[name=mode]')) r.addEventListener('change', render);
 $('colEngobe').addEventListener('input', render);
+$('colMid').addEventListener('input', render);
 $('colTon').addEventListener('input', render);
 $('mirror').addEventListener('change', render);
 $('btnPrint').addEventListener('click', doPrint);
@@ -274,8 +304,7 @@ function loadFile(file) {
     for (let i = 0, j = 0; i < S.gray.length; i++, j += 4) {
       S.gray[i] = 0.299 * d[j] + 0.587 * d[j+1] + 0.114 * d[j+2];
     }
-    const t = otsu(S.gray);
-    $('thresh').value = t; $('oThresh').textContent = t;
+    autoThreshold();
     drop.style.display = 'none';
     $('stage').style.display = 'block';
     recomputeContours(); render();
@@ -297,6 +326,28 @@ function otsu(gray) {
     const mB = sumB / wB, mF = (sum - sumB) / wF;
     const v = wB * wF * (mB - mF) * (mB - mF);
     if (v > maxVar) { maxVar = v; best = t; }
+  }
+  return best;
+}
+
+// two-threshold Otsu (three classes), exhaustive search over 256² pairs
+function otsu2(gray) {
+  const hist = new Float64Array(256);
+  for (let i = 0; i < gray.length; i++) hist[gray[i] | 0]++;
+  const P = new Float64Array(257), M = new Float64Array(257);
+  for (let i = 0; i < 256; i++) { P[i+1] = P[i] + hist[i]; M[i+1] = M[i] + i * hist[i]; }
+  const total = P[256], mT = M[256] / total;
+  let best = [85, 170], maxV = -1;
+  for (let t1 = 1; t1 < 254; t1++) {
+    const w0 = P[t1]; if (!w0) continue;
+    const m0 = M[t1] / w0;
+    for (let t2 = t1 + 1; t2 < 255; t2++) {
+      const w1 = P[t2] - P[t1], w2 = total - P[t2];
+      if (!w1 || !w2) continue;
+      const m1 = (M[t2] - M[t1]) / w1, m2 = (M[256] - M[t2]) / w2;
+      const v = w0 * (m0 - mT) ** 2 + w1 * (m1 - mT) ** 2 + w2 * (m2 - mT) ** 2;
+      if (v > maxV) { maxV = v; best = [t1, t2]; }
+    }
   }
   return best;
 }
@@ -330,18 +381,31 @@ function recomputeContours() {
   const t0 = performance.now();
   const w = S.pw, h = S.ph;
   const blurred = boxBlur(S.gray, w, h, +$('blur').value);
-  const th = +$('thresh').value, inv = $('invert').checked;
+  const inv = $('invert').checked;
+  const eps = +$('eps').value;
+  const minA = (+$('minarea').value / 100) * w * h;
+  let ths;
+  if (tones() === 3) {
+    const a = +$('thresh').value, b = +$('thresh2').value;
+    // paint order: wide mask (dunkel+mittel) first, darkest on top
+    ths = [Math.max(a, b), Math.min(a, b)];
+  } else {
+    ths = [+$('thresh').value];
+  }
+  S.layers = ths.map(th => extractContours(blurred, w, h, th, inv, eps, minA));
+  S.lastMs = performance.now() - t0;
+}
+
+function extractContours(blurred, w, h, th, inv, eps, minA) {
   // binary field padded by 1 background pixel on all sides
   const bw = w + 2, bh = h + 2;
   const bin = new Uint8Array(bw * bh);
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
-      const dark = blurred[y * w + x] < th;
-      bin[(y + 1) * bw + (x + 1)] = (dark !== inv) ? 1 : 0;
+      const v = inv ? 255 - blurred[y * w + x] : blurred[y * w + x];
+      bin[(y + 1) * bw + (x + 1)] = v < th ? 1 : 0;
     }
   const loops = marchingSquares(bin, bw, bh);
-  const eps = +$('eps').value;
-  const minA = (+$('minarea').value / 100) * w * h;
   const contours = [];
   for (const loop of loops) {
     // shift back by padding offset (-1) and simplify
@@ -353,8 +417,7 @@ function recomputeContours() {
     contours.push({ pts, area });
   }
   contours.sort((a, b) => b.area - a.area);
-  S.contours = contours;
-  S.lastMs = performance.now() - t0;
+  return contours;
 }
 
 // Marching squares over binary field; returns array of closed point loops.
@@ -480,23 +543,30 @@ function buildSvg(opts) {
   const photoOp = forPrint ? 0 : (+$('photoOp').value / 100);
   const strokeW = cw / twMM * 0.6;   // ≈0.6 mm line on the tile
 
-  let d = '';
-  for (const c of S.contours) {
-    d += 'M' + c.pts.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('L') + 'Z';
-  }
+  // fill colors per painted layer; 3 Töne: [Engobe unten, Engobe oben]
+  const layerFills = S.layers.length === 2 ? [$('colMid').value, engobe] : [engobe];
+  const ds = S.layers.map(contours =>
+    contours.map(c => 'M' + c.pts.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('L') + 'Z').join('')
+  );
   const mirrorT = mirror ? `translate(${cw},0) scale(-1,1)` : '';
   const clipId = 'clip' + (forPrint ? 'P' : 'S');
 
-  let inner = '';
+  let shapes = '';
   if (mode === 'fill') {
-    inner = `<rect x="0" y="0" width="${cw}" height="${ch}" fill="${ton}"/>`
-      + `<g transform="${mirrorT}"><g transform="translate(${-cx},${-cy})">`
-      + `<path d="${d}" fill="${engobe}" fill-rule="evenodd"/></g></g>`;
+    shapes = ds.map((d, i) => `<path d="${d}" fill="${layerFills[i]}" fill-rule="evenodd"/>`).join('');
   } else {
-    inner = `<rect x="0" y="0" width="${cw}" height="${ch}" fill="${forPrint ? '#ffffff' : ton}"/>`
-      + `<g transform="${mirrorT}"><g transform="translate(${-cx},${-cy})">`
-      + `<path d="${d}" fill="none" stroke="${forPrint ? '#000000' : engobe}" stroke-width="${strokeW}" stroke-linejoin="round"/></g></g>`;
+    // Linienmodus: bei 3 Tönen ist die Kontur der weiten Maske (Index 0)
+    // die Grenze zur tiefsten Stufe (Ton) → gestrichelt
+    shapes = ds.map((d, i) => {
+      const dash = (S.layers.length === 2 && i === 0)
+        ? ` stroke-dasharray="${(strokeW * 4).toFixed(2)} ${(strokeW * 2.5).toFixed(2)}"` : '';
+      const col = forPrint ? '#000000' : (S.layers.length === 2 ? layerFills[i] : engobe);
+      return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${strokeW}" stroke-linejoin="round"${dash}/>`;
+    }).join('');
   }
+  const bg = (mode === 'line' && forPrint) ? '#ffffff' : ton;
+  let inner = `<rect x="0" y="0" width="${cw}" height="${ch}" fill="${bg}"/>`
+    + `<g transform="${mirrorT}"><g transform="translate(${-cx},${-cy})">${shapes}</g></g>`;
   if (photoOp > 0 && S.procCanvas) {
     const href = S.procCanvas.toDataURL('image/jpeg', 0.75);
     inner += `<g transform="${mirrorT}" opacity="${photoOp}"><g transform="translate(${-cx},${-cy})">`
@@ -510,53 +580,62 @@ function buildSvg(opts) {
     + `</svg>`;
 }
 
+const hasShapes = () => S.layers.some(l => l.length > 0);
+
 function render() {
-  if (!S.contours) return;
+  if (!S.layers.length) return;
   $('svgwrap').innerHTML = buildSvg();
-  const n = S.contours.length;
-  const pts = S.contours.reduce((s, c) => s + c.pts.length, 0);
+  const n = S.layers.reduce((s, l) => s + l.length, 0);
+  const pts = S.layers.reduce((s, l) => s + l.reduce((a, c) => a + c.pts.length, 0), 0);
   $('stats').textContent =
     `${n} Formen · ${pts} Punkte · ${$('tileW').value}×${$('tileH').value} cm` +
+    (S.layers.length === 2 ? ' · 3 Töne' : '') +
     ($('mirror').checked ? ' · gespiegelt' : '') +
     (S.lastMs ? ` · ${S.lastMs.toFixed(0)} ms` : '');
 }
 
 // ---------- Export ----------
 function doPrint() {
-  if (!S.contours.length) return;
+  if (!hasShapes()) return;
   const mode = document.querySelector('input[name=mode]:checked').value;
   const date = new Date().toLocaleDateString('de-DE');
-  $('printArea').innerHTML =
-    `<div class="label">Pilzkeramik · sGraffito-Vorlage · ${$('tileW').value}×${$('tileH').value} cm · `
-    + `${$('mirror').checked ? 'GESPIEGELT' : 'seitenrichtig'} · ${mode === 'fill' ? 'Flächen' : 'Linien'} · ${date}</div>`
-    + buildSvg({ forPrint: true });
+  const three = S.layers.length === 2;
+  let label = `Pilzkeramik · sGraffito-Vorlage · ${$('tileW').value}×${$('tileH').value} cm · `
+    + `${$('mirror').checked ? 'GESPIEGELT' : 'seitenrichtig'} · ${mode === 'fill' ? 'Flächen' : 'Linien'}`
+    + (three ? ' · 3 Töne' : '') + ` · ${date}`;
+  if (three && mode === 'line') label += '<br>durchgezogen = Grenze „bleibt stehen" / Stufe 1 · gestrichelt = Grenze zur tiefsten Stufe (Ton)';
+  $('printArea').innerHTML = `<div class="label">${label}</div>` + buildSvg({ forPrint: true });
   window.print();
 }
 
 function downloadSvg() {
-  if (!S.contours.length) return;
+  if (!hasShapes()) return;
   const blob = new Blob([buildSvg()], { type: 'image/svg+xml' });
   triggerDownload(blob, `sgraffito-${$('tileW').value}x${$('tileH').value}cm.svg`);
 }
 
 function downloadPng() {
-  if (!S.contours.length || !S.procCanvas) return;
+  if (!hasShapes() || !S.procCanvas) return;
   // photo + contour lines overlay, full processing frame (for homepage/print media)
   const scale = 1600 / S.pw;
   const c = document.createElement('canvas');
   c.width = Math.round(S.pw * scale); c.height = Math.round(S.ph * scale);
   const ctx = c.getContext('2d');
   ctx.drawImage(S.procCanvas, 0, 0, c.width, c.height);
-  ctx.strokeStyle = '#ea9a3e'; ctx.lineWidth = Math.max(2, scale * 2.2); ctx.lineJoin = 'round';
-  ctx.beginPath();
-  for (const cont of S.contours) {
-    cont.pts.forEach((p, i) => {
-      const x = p[0] * scale, y = p[1] * scale;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-  }
-  ctx.stroke();
+  const layerCols = S.layers.length === 2 ? ['#4fb3e8', '#ea9a3e'] : ['#ea9a3e'];
+  ctx.lineWidth = Math.max(2, scale * 2.2); ctx.lineJoin = 'round';
+  S.layers.forEach((contours, li) => {
+    ctx.strokeStyle = layerCols[li];
+    ctx.beginPath();
+    for (const cont of contours) {
+      cont.pts.forEach((p, i) => {
+        const x = p[0] * scale, y = p[1] * scale;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+    }
+    ctx.stroke();
+  });
   c.toBlob(b => triggerDownload(b, 'sgraffito-foto-overlay.png'), 'image/png');
 }
 
