@@ -77,14 +77,25 @@ Begründung: Dieselbe reale Person bucht einen Kurs *und* gibt Werkstücke in
 Auftrag. Zwei Tabellen bedeuten Duplikate; Personen-Deduplizierung nach zwei
 Jahren Betrieb ist die hässlichste denkbare Migration.
 
-Nebeneffekt — **Löschkonzept wird trivial**, weil alle PII in einer Tabelle wohnt:
+Nebeneffekt — **Löschkonzept wird einfach**, weil operative PII an genau einer
+Entität hängt. Präzisierung: *nicht* alle PII wohnt in einer Tabelle — ein
+revisionssicheres Rechnungsarchiv enthält notwendigerweise PII. Das Konzept
+trennt daher zwei Datenklassen:
 
-- **Art. 15 (Auskunft):** ein Endpoint, der über die FKs eines Kontakts läuft.
-- **Art. 17 (Löschung) = Anonymisierung:** `anonymisiert_am` setzen, PII-Felder
-  überschreiben, Anmeldungs-/Rechnungsgerüst behalten. Rechnungen unterliegen
-  §147 AO (10 Jahre Aufbewahrung) — Anonymisierung ist nicht der Kompromiss,
-  sondern das rechtlich korrekte Design.
-- Diese Felder kommen **jetzt** ins Schema, nicht nachgerüstet.
+- **Rechnungsdaten (aufbewahrungspflichtig, §147 AO, 10 Jahre):** Jede Rechnung
+  hält einen **unveränderlichen Empfänger-/Adress-Snapshot** (kopierte Felder
+  zum Ausstellungszeitpunkt, kein Live-Join auf `Kontakt`). Dieser Snapshot wird
+  innerhalb der Aufbewahrungsfrist **nicht anonymisiert und nicht verändert** —
+  Rechtsgrundlage ist Art. 6 Abs. 1 lit. c DSGVO i. V. m. §147 AO; Art. 17
+  greift hier nicht (Art. 17 Abs. 3 lit. b). Nach Fristablauf: Löschung/
+  Anonymisierung des Archivs als eigener, jährlicher Schritt.
+- **Kontakt- und operative Daten (nicht aufbewahrungspflichtig):** Hier greift
+  Art. 17 als Anonymisierung — `anonymisiert_am` setzen, PII-Felder auf
+  `Kontakt` überschreiben, Anmeldungs-/Auftragsgerüst für Statistik behalten.
+- **Art. 15 (Auskunft):** ein Endpoint, der über die FKs eines Kontakts läuft
+  **und** die Rechnungs-Snapshots derselben Person einschließt.
+- Snapshot-Spalten und `anonymisiert_am` kommen **jetzt** ins Schema, nicht
+  nachgerüstet.
 
 ---
 
