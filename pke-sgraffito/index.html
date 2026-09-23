@@ -71,15 +71,23 @@
     gap: 10px; color: var(--muted); cursor: pointer; text-align: center; padding: 30px;
   }
   #drop.drag { border-color: var(--accent); color: var(--accent); }
-  #stage { width: 100%; max-width: 780px; display: none; }
+  #stage { width: 100%; max-width: 1100px; display: none; }
   #svgwrap {
     background: repeating-conic-gradient(#26221f 0% 25%, #2e2a26 0% 50%) 0 0 / 24px 24px;
     border-radius: 12px; padding: 18px; display: flex; justify-content: center;
   }
   #svgwrap svg { max-width: 100%; height: auto; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+  #mosaic { width: 100%; display: none; gap: 16px; justify-content: center; }
+  .mtile {
+    background: repeating-conic-gradient(#26221f 0% 25%, #2e2a26 0% 50%) 0 0 / 24px 24px;
+    border-radius: 10px; padding: 10px; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; min-width: 0;
+  }
+  .mtile svg { width: 100%; height: auto; box-shadow: 0 6px 20px rgba(0,0,0,.45); }
+  .mtile-label { font-size: 11px; color: var(--muted); letter-spacing: .04em; }
   #stats { color: var(--muted); font-size: 12px; margin-top: 10px; text-align: center; }
   details.help {
-    width: 100%; max-width: 780px; background: var(--panel);
+    width: 100%; max-width: 1100px; background: var(--panel);
     border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 14px;
   }
   details.help summary { cursor: pointer; color: var(--accent); font-weight: 600; }
@@ -94,6 +102,8 @@
     #printArea .label {
       font-size: 9pt; color: #000; margin-bottom: 4mm; font-family: sans-serif;
     }
+    .printPage { page-break-after: always; }
+    .printPage:last-child { page-break-after: auto; }
     @page { margin: 12mm; }
   }
   @media (max-width: 760px) {
@@ -145,6 +155,23 @@
     <input type="range" id="panY" min="0" max="100" step="1" value="50">
     <label class="row">Zoom <output id="oZoom">100 %</output></label>
     <input type="range" id="zoom" min="100" max="300" step="5" value="100">
+
+    <label class="row" style="margin-top:12px"><strong>Raster — Mehrfliesen-Motiv</strong></label>
+    <div class="grid3">
+      <button class="gridpreset" data-r="1" data-c="1">1×1</button>
+      <button class="gridpreset" data-r="2" data-c="2">2×2</button>
+      <button class="gridpreset" data-r="2" data-c="3">2×3</button>
+    </div>
+    <div class="grid3" style="margin-top:6px">
+      <button class="gridpreset" data-r="3" data-c="2">3×2</button>
+      <button class="gridpreset" data-r="2" data-c="4">2×4</button>
+      <button class="gridpreset" data-r="4" data-c="2">4×2</button>
+    </div>
+    <div class="grid3" style="margin-top:8px">
+      <div class="num"><label>Reihen</label><input type="number" id="gridRows" value="1" min="1" max="12" step="1"></div>
+      <div class="num"><label>Spalten</label><input type="number" id="gridCols" value="1" min="1" max="12" step="1"></div>
+      <div class="num"><label>Fuge (mm)</label><input type="number" id="gridGap" value="5" min="0" max="30" step="1"></div>
+    </div>
   </fieldset>
 
   <fieldset>
@@ -179,6 +206,7 @@
 
   <div id="stage">
     <div id="svgwrap"></div>
+    <div id="mosaic"></div>
     <div id="stats"></div>
   </div>
 
@@ -187,7 +215,7 @@
     <ol>
       <li><strong>Fliese vorbereiten:</strong> Tonplatte ausrollen (ca. 8–10 mm), auf Maß schneiden, unter Folie bis <em>lederhart</em> anziehen lassen.</li>
       <li><strong>Engobieren:</strong> 2–3 dünne Engobe-Schichten auftragen (Pinsel oder Tauchen), jede Schicht kurz anziehen lassen. Matt-lederhart weiterarbeiten — nicht durchtrocknen lassen. <em>Für den Drei-Ton-Modus: zwei verschiedenfarbige Engoben übereinander (z.&nbsp;B. hell unten, dunkel oben).</em></li>
-      <li><strong>Vorlage drucken:</strong> Hier „Drucken 1:1" — die Vorlage kommt maßhaltig aus dem Drucker. Für Durchpaus-Transfer <em>Spiegeln</em> aktivieren.</li>
+      <li><strong>Vorlage drucken:</strong> Hier „Drucken 1:1" — die Vorlage kommt maßhaltig aus dem Drucker. Für Durchpaus-Transfer <em>Spiegeln</em> aktivieren. <em>Bei Raster-Motiven (mehrere Fliesen): eine Druckseite pro Fliese, jede mit Positionsangabe (Reihe/Spalte) und kleiner Übersichtskarte — beim Spiegeln wird die Spaltenreihenfolge automatisch korrekt vertauscht, sodass das fertige Mosaik seitenrichtig zusammenpasst.</em></li>
       <li><strong>Übertragen:</strong> Vorlage auflegen und Konturen mit Kugelschreiber oder stumpfer Nadel durchdrücken — die Linien zeichnen sich im lederharten Ton ab. Alternativ: Lochpause (Konturen perforieren, mit Pigmentbeutel abtupfen).</li>
       <li><strong>Kratzen (sGraffito):</strong> Die „Ton"-Flächen der Vorlage mit Schlingschleife / Ritzmesser freilegen. Große Flächen zuerst, feine Linien zuletzt. Kanten leicht anschrägen — brennt stabiler. <em>Drei-Ton-Modus: Mittelton-Flächen nur durch die obere Engobe kratzen (untere wird sichtbar), „Ton"-Flächen (gestrichelt umrandet) durch beide Schichten bis auf den Ton.</em></li>
       <li><strong>Brennen:</strong> Langsam trocknen (Folie lüften), Schrühbrand, optional Transparentglasur + Glasurbrand.</li>
@@ -269,10 +297,15 @@ $('autoThresh').addEventListener('click', () => {
   if (!S.gray) return;
   autoThreshold(); recomputeContours(); render();
 });
-for (const id of ['tileW','tileH']) $(id).addEventListener('input', () => scheduleUpdate(false));
+for (const id of ['tileW','tileH','gridRows','gridCols','gridGap']) $(id).addEventListener('input', () => scheduleUpdate(false));
 for (const b of document.querySelectorAll('button.preset')) {
   b.addEventListener('click', () => {
     $('tileW').value = b.dataset.w; $('tileH').value = b.dataset.h; render();
+  });
+}
+for (const b of document.querySelectorAll('button.gridpreset')) {
+  b.addEventListener('click', () => {
+    $('gridRows').value = b.dataset.r; $('gridCols').value = b.dataset.c; render();
   });
 }
 for (const r of document.querySelectorAll('input[name=mode]')) r.addEventListener('change', render);
@@ -521,22 +554,55 @@ function rdp(pts, eps) {
 }
 
 // ---------- Crop / mapping ----------
-function cropRect() {
+// Raster: rows×cols Fliesen bilden gemeinsam EIN Motiv. Der Ausschnitt (Pan/
+// Zoom) rahmt das gesamte Mosaik; tileRect() schneidet daraus die einzelne
+// Fliese heraus. Beim Spiegeln muss die Spaltenreihenfolge der PHYSISCHEN
+// Fliesen umgekehrt werden — sonst ergibt das Zusammensetzen individuell
+// gespiegelter Fliesen kein korrektes Spiegelbild des Gesamtmotivs.
+function gridDims() {
+  const rows = Math.max(1, Math.round(+$('gridRows').value) || 1);
+  const cols = Math.max(1, Math.round(+$('gridCols').value) || 1);
   const tw = +$('tileW').value || 15, thh = +$('tileH').value || 15;
-  const tileAspect = tw / thh;
+  const gapMm = Math.max(0, +$('gridGap').value || 0);
+  const tileWmm = tw * 10, tileHmm = thh * 10;
+  return {
+    rows, cols, tileWmm, tileHmm, gapMm,
+    totalWmm: cols * tileWmm + (cols - 1) * gapMm,
+    totalHmm: rows * tileHmm + (rows - 1) * gapMm,
+  };
+}
+
+function gridCropRect() {
+  const g = gridDims();
+  const aspect = g.totalWmm / g.totalHmm;
   const zoom = (+$('zoom').value) / 100;
-  let cw = S.pw, ch = S.pw / tileAspect;
-  if (ch > S.ph) { ch = S.ph; cw = S.ph * tileAspect; }
+  let cw = S.pw, ch = S.pw / aspect;
+  if (ch > S.ph) { ch = S.ph; cw = S.ph * aspect; }
   cw /= zoom; ch /= zoom;
   const cx = (S.pw - cw) * (+$('panX').value / 100);
   const cy = (S.ph - ch) * (+$('panY').value / 100);
-  return { cx, cy, cw, ch, twMM: tw * 10, thMM: thh * 10 };
+  return { cx, cy, cw, ch, twMM: g.totalWmm, thMM: g.totalHmm, ...g };
+}
+
+function tileRect(r, c) {
+  const g = gridCropRect();
+  const mirror = $('mirror').checked;
+  const cc = mirror ? (g.cols - 1 - c) : c;
+  const pxPerMmX = g.cw / g.totalWmm, pxPerMmY = g.ch / g.totalHmm;
+  const tileWpx = g.tileWmm * pxPerMmX, tileHpx = g.tileHmm * pxPerMmY;
+  const gapPxX = g.gapMm * pxPerMmX, gapPxY = g.gapMm * pxPerMmY;
+  return {
+    cx: g.cx + cc * (tileWpx + gapPxX),
+    cy: g.cy + r * (tileHpx + gapPxY),
+    cw: tileWpx, ch: tileHpx,
+    twMM: g.tileWmm, thMM: g.tileHmm,
+  };
 }
 
 // ---------- SVG building ----------
-function buildSvg(opts) {
+function buildSvg(rect, opts) {
   const { forPrint = false } = opts || {};
-  const { cx, cy, cw, ch, twMM, thMM } = cropRect();
+  const { cx, cy, cw, ch, twMM, thMM } = rect;
   const mode = document.querySelector('input[name=mode]:checked').value;
   const engobe = $('colEngobe').value, ton = $('colTon').value;
   const mirror = $('mirror').checked;
@@ -582,13 +648,45 @@ function buildSvg(opts) {
 
 const hasShapes = () => S.layers.some(l => l.length > 0);
 
+// kleine Übersichtskarte: rows×cols Kästchen, aktive Fliese hervorgehoben
+function miniMap(rows, cols, hr, hc) {
+  const cell = 14, gap = 3;
+  const w = cols * cell + (cols - 1) * gap, h = rows * cell + (rows - 1) * gap;
+  let rects = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = c * (cell + gap), y = r * (cell + gap);
+      const active = r === hr && c === hc;
+      rects += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="2" `
+        + `fill="${active ? '#ea9a3e' : '#ffffff'}" stroke="#333" stroke-width="1"/>`;
+    }
+  }
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:middle">${rects}</svg>`;
+}
+
 function render() {
   if (!S.layers.length) return;
-  $('svgwrap').innerHTML = buildSvg();
+  const g = gridCropRect();
+  const isGrid = g.rows * g.cols > 1;
+  $('svgwrap').style.display = isGrid ? 'none' : 'flex';
+  $('mosaic').style.display = isGrid ? 'grid' : 'none';
+  if (isGrid) {
+    $('mosaic').style.gridTemplateColumns = `repeat(${g.cols}, 1fr)`;
+    let html = '';
+    for (let r = 0; r < g.rows; r++) {
+      for (let c = 0; c < g.cols; c++) {
+        html += `<div class="mtile"><div class="mtile-label">Reihe ${r+1} · Spalte ${c+1}</div>${buildSvg(tileRect(r, c))}</div>`;
+      }
+    }
+    $('mosaic').innerHTML = html;
+  } else {
+    $('svgwrap').innerHTML = buildSvg(tileRect(0, 0));
+  }
   const n = S.layers.reduce((s, l) => s + l.length, 0);
   const pts = S.layers.reduce((s, l) => s + l.reduce((a, c) => a + c.pts.length, 0), 0);
   $('stats').textContent =
     `${n} Formen · ${pts} Punkte · ${$('tileW').value}×${$('tileH').value} cm` +
+    (isGrid ? ` · ${g.rows}×${g.cols} Fliesen (${g.rows * g.cols} St.)` : '') +
     (S.layers.length === 2 ? ' · 3 Töne' : '') +
     ($('mirror').checked ? ' · gespiegelt' : '') +
     (S.lastMs ? ` · ${S.lastMs.toFixed(0)} ms` : '');
@@ -600,18 +698,35 @@ function doPrint() {
   const mode = document.querySelector('input[name=mode]:checked').value;
   const date = new Date().toLocaleDateString('de-DE');
   const three = S.layers.length === 2;
-  let label = `Pilzkeramik · sGraffito-Vorlage · ${$('tileW').value}×${$('tileH').value} cm · `
-    + `${$('mirror').checked ? 'GESPIEGELT' : 'seitenrichtig'} · ${mode === 'fill' ? 'Flächen' : 'Linien'}`
-    + (three ? ' · 3 Töne' : '') + ` · ${date}`;
-  if (three && mode === 'line') label += '<br>durchgezogen = Grenze „bleibt stehen" / Stufe 1 · gestrichelt = Grenze zur tiefsten Stufe (Ton)';
-  $('printArea').innerHTML = `<div class="label">${label}</div>` + buildSvg({ forPrint: true });
+  const mirrorOn = $('mirror').checked;
+  const g = gridCropRect();
+  const total = g.rows * g.cols;
+  let hint = (three && mode === 'line')
+    ? '<br>durchgezogen = Grenze „bleibt stehen" / Stufe 1 · gestrichelt = Grenze zur tiefsten Stufe (Ton)' : '';
+  if (total > 1 && mirrorOn) hint += '<br>Gespiegelt: die Spaltenreihenfolge ist bereits für die Wand vertauscht — Fliesen wie beschriftet auflegen.';
+
+  let pages = '', n = 0;
+  for (let r = 0; r < g.rows; r++) {
+    for (let c = 0; c < g.cols; c++) {
+      n++;
+      let label = `Pilzkeramik · sGraffito-Vorlage · ${$('tileW').value}×${$('tileH').value} cm · `
+        + `${mirrorOn ? 'GESPIEGELT' : 'seitenrichtig'} · ${mode === 'fill' ? 'Flächen' : 'Linien'}`
+        + (three ? ' · 3 Töne' : '') + ` · ${date}`;
+      if (total > 1) label += `<br>Fliese ${n}/${total} · Reihe ${r+1}/${g.rows} · Spalte ${c+1}/${g.cols} &nbsp; ${miniMap(g.rows, g.cols, r, c)}`;
+      label += hint;
+      pages += `<div class="printPage"><div class="label">${label}</div>${buildSvg(tileRect(r, c), { forPrint: true })}</div>`;
+    }
+  }
+  $('printArea').innerHTML = pages;
   window.print();
 }
 
 function downloadSvg() {
   if (!hasShapes()) return;
-  const blob = new Blob([buildSvg()], { type: 'image/svg+xml' });
-  triggerDownload(blob, `sgraffito-${$('tileW').value}x${$('tileH').value}cm.svg`);
+  const g = gridCropRect();
+  const blob = new Blob([buildSvg(g)], { type: 'image/svg+xml' });
+  const suffix = g.rows * g.cols > 1 ? `-gesamtmotiv-${g.rows}x${g.cols}` : '';
+  triggerDownload(blob, `sgraffito-${$('tileW').value}x${$('tileH').value}cm${suffix}.svg`);
 }
 
 function downloadPng() {
@@ -636,6 +751,25 @@ function downloadPng() {
     }
     ctx.stroke();
   });
+  const g = gridCropRect();
+  if (g.rows * g.cols > 1) {
+    const pxPerMmX = g.cw / g.totalWmm, pxPerMmY = g.ch / g.totalHmm;
+    const tileWpx = g.tileWmm * pxPerMmX, tileHpx = g.tileHmm * pxPerMmY;
+    const gapPxX = g.gapMm * pxPerMmX, gapPxY = g.gapMm * pxPerMmY;
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = Math.max(1, scale * 1.2);
+    ctx.setLineDash([scale * 6, scale * 4]);
+    ctx.font = `${Math.round(scale * 20)}px sans-serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    for (let r = 0; r < g.rows; r++) {
+      for (let c = 0; c < g.cols; c++) {
+        const x = (g.cx + c * (tileWpx + gapPxX)) * scale, y = (g.cy + r * (tileHpx + gapPxY)) * scale;
+        ctx.strokeRect(x, y, tileWpx * scale, tileHpx * scale);
+        ctx.fillText(`R${r+1}·S${c+1}`, x + 6, y + Math.round(scale * 22));
+      }
+    }
+    ctx.setLineDash([]);
+  }
   c.toBlob(b => triggerDownload(b, 'sgraffito-foto-overlay.png'), 'image/png');
 }
 
