@@ -14,6 +14,11 @@ keine Abhängigkeiten; läuft offline, auch auf dem iPad im Atelier.
 open pke-sgraffito/index.html
 ```
 
+Läuft außerdem eingebettet im **Werkstattboard** (`pke-keramikwerkstatt`) unter
+`/werkzeuge/sgraffito`. Diese Datei hier ist die Quelle der Wahrheit — nach
+Änderungen `npm run sync:sgraffito` im `pke-keramikwerkstatt/frontend/`-Verzeichnis
+ausführen, um die eingebettete Kopie zu aktualisieren.
+
 1. **Foto reinziehen** — gut funktionieren klare Silhouetten gegen Himmel
    (Schornstein, Betonkanten, Balkonraster).
 2. **Geometrie-Regler:** Schwelle trennt hell/dunkel (Otsu-Auto-Knopf),
@@ -42,6 +47,14 @@ open pke-sgraffito/index.html
    - **SVG** — Gesamtmotiv für Archiv, Plotter oder Weiterbearbeitung
    - **PNG Foto+Linien** — Overlay-Bild für Homepage / Druckwerk,
      bei Rastern inkl. Fliesengrenzen und Positionsbeschriftung
+5. **Farbe aus Foto übernehmen:** 💧-Pipette neben Engobe/Ton anklicken,
+   dann ins kleine Referenzfoto klicken — praktisch, um die Farben von
+   fotografierten Musterfliesen (echte Engobe-/Ton-Töne) direkt zu
+   übernehmen, statt sie nach Auge zu treffen.
+6. **Einstellungen bleiben erhalten:** Regler, Fliesenmaß, Raster und
+   Farben werden im Browser gespeichert (localStorage) und sind beim
+   nächsten Öffnen noch da. „↺ Anderes Foto laden" setzt nur das Foto
+   zurück, nicht die Einstellungen.
 
 ## Technik (für Neugierige)
 

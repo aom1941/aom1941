@@ -5,6 +5,7 @@ import { Navigation } from './components/Navigation'
 import { KursDetail } from './pages/KursDetail'
 import { KursForm } from './pages/KursForm'
 import { KursListe } from './pages/KursListe'
+import { SgraffitoTool } from './pages/SgraffitoTool'
 
 // ── Blueprint types & data (kept for /blueprint route) ───────────────────────
 
@@ -244,6 +245,7 @@ function App() {
         <Route path="/kurse/neu" element={<KursForm />} />
         <Route path="/kurse/:id" element={<KursDetail />} />
         <Route path="/kurse/:id/bearbeiten" element={<KursForm />} />
+        <Route path="/werkzeuge/sgraffito" element={<SgraffitoTool />} />
         <Route path="/blueprint" element={<BlueprintPage />} />
       </Routes>
     </BrowserRouter>
