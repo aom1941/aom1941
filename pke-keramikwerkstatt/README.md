@@ -67,6 +67,23 @@ npm run dev          # → http://localhost:5173
 
 ---
 
+## Werkzeuge
+
+### 🏺 sGraffito-Vorlage — `/werkzeuge/sgraffito`
+
+Foto → Geometrie-Extraktion → Fliesen-Druckvorlage für sGraffito-Engobe-Arbeiten
+auf Fliesen. Zwei-/Drei-Ton-Modus (ein- oder zweischichtige Engobe), Raster-Modus
+für Mehrfliesen-Motive, 1:1-Druck mit korrekter Spiegel-Logik, Farbe direkt aus
+einem Referenzfoto übernehmen.
+
+Technisch ein eigenständiges, abhängigkeitsfreies HTML-Tool (`pke-sgraffito/`
+im Repo-Root — läuft auch offline, z.&nbsp;B. auf einem iPad im Atelier), das hier
+per iframe unter `frontend/public/tools/sgraffito.html` eingebettet ist.
+**Das Original in `pke-sgraffito/` ist die Quelle der Wahrheit** — nach
+Änderungen dort `npm run sync:sgraffito` im `frontend/`-Verzeichnis ausführen,
+um die eingebettete Kopie zu aktualisieren. Siehe `pke-sgraffito/README.md`
+für die volle Doku.
+
 ## Features (Phase 1)
 
 ### Kursverwaltung
@@ -172,11 +189,15 @@ pke-keramikwerkstatt/
 │   │   ├── pages/
 │   │   │   ├── KursListe.tsx    # Kursübersicht (Grid)
 │   │   │   ├── KursDetail.tsx   # Detailseite + Termine + Anmeldungen
-│   │   │   └── KursForm.tsx     # Kurs anlegen / bearbeiten
+│   │   │   ├── KursForm.tsx     # Kurs anlegen / bearbeiten
+│   │   │   └── SgraffitoTool.tsx # Werkzeuge: sGraffito-Vorlage (iframe)
 │   │   └── components/
 │   │       ├── Navigation.tsx   # Top-Navbar
 │   │       ├── KursCard.tsx     # Kurskarte für Übersicht
 │   │       └── WhatsappVorlage.tsx  # Nachrichtenvorlagen
+│   ├── public/
+│   │   └── tools/
+│   │       └── sgraffito.html   # Kopie von pke-sgraffito/index.html (Quelle der Wahrheit dort)
 │   ├── nginx.conf               # Reverse Proxy Konfiguration
 │   ├── package.json
 │   └── Dockerfile               # Multi-Stage Build (Node → Nginx)
