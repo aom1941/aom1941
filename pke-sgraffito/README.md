@@ -27,11 +27,21 @@ open pke-sgraffito/index.html
      tiefsten Stufe gestrichelt.
 3. **Fliese:** Maß wählen (10×10 / 15×15 / 20×20 oder frei), Ausschnitt
    und Zoom schieben.
+   - **Raster** — für Mehrfliesen-Motive (ein Bild über mehrere Fliesen,
+     z.&nbsp;B. für eine Wandfläche): Reihen × Spalten wählen (Presets
+     oder frei bis 12×12) plus Fugenbreite in mm. Der Ausschnitt rahmt
+     dann das *gesamte* Mosaik; die Vorschau zeigt einen Kontaktbogen
+     mit allen Fliesen, beschriftet nach Reihe/Spalte.
 4. **Export:**
    - 🖨️ **Drucken 1:1** — maßhaltige Vorlage direkt aus dem Browser
-     (mm-genau, mit Beschriftung; *Spiegeln* für Durchpaus-Transfer)
-   - **SVG** — für Archiv, Plotter oder Weiterbearbeitung
-   - **PNG Foto+Linien** — Overlay-Bild für Homepage / Druckwerk
+     (mm-genau, mit Beschriftung; *Spiegeln* für Durchpaus-Transfer).
+     Bei Raster-Motiven: eine Druckseite pro Fliese, jede mit
+     Positionsangabe und kleiner Übersichtskarte. Beim Spiegeln wird
+     die Spaltenreihenfolge automatisch vertauscht, sodass das
+     zusammengesetzte Mosaik an der Wand seitenrichtig ist.
+   - **SVG** — Gesamtmotiv für Archiv, Plotter oder Weiterbearbeitung
+   - **PNG Foto+Linien** — Overlay-Bild für Homepage / Druckwerk,
+     bei Rastern inkl. Fliesengrenzen und Positionsbeschriftung
 
 ## Technik (für Neugierige)
 
