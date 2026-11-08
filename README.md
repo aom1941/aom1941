@@ -72,11 +72,23 @@ Alle Repositories folgen dem **HRFR-v2 Taxonomie-Schema** (`aom-<domain>-<name>`
 ---
 
 ### 🏺 [`pke-keramikwerkstatt`](pke-keramikwerkstatt/) — Werkstattboard
-> Kursverwaltung · Teilnehmer · Terminplanung · Docker Compose · Self-hosted
+> Kursverwaltung · Teilnehmer · Terminplanung · sGraffito unter `/werkzeuge/sgraffito` · Docker Compose · Self-hosted
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+
+Die **kanonische App-Doku** steht in [`pke-keramikwerkstatt/README.md`](pke-keramikwerkstatt/README.md). Das eigenständige GitHub-Repo [`pilzkeramik/pke-keramikwerkstatt`](https://github.com/pilzkeramik/pke-keramikwerkstatt) ist ein schlankeres MVP **ohne** sGraffito.
+
+---
+
+### 🏺 [`pke-sgraffito`](pke-sgraffito/) — Foto → Fliesen-Vorlage
+> Ein-Datei-HTML-Tool (offline, z. B. iPad): Foto → Otsu/Marching Squares → 1:1-Druck / Raster-Mosaik
+
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+
+Quelle der Wahrheit: [`pke-sgraffito/README.md`](pke-sgraffito/README.md). Nach Änderungen `npm run sync:sgraffito` im nested `pke-keramikwerkstatt/frontend/` ausführen, sonst bleibt die iframe-Kopie alt.
 
 ---
 
