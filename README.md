@@ -80,6 +80,16 @@ Alle Repositories folgen dem **HRFR-v2 Taxonomie-Schema** (`aom-<domain>-<name>`
 
 ---
 
+### 🗂️ [`apps-atlas`](apps-atlas/) — Apps & Fähigkeiten Katalog
+> Cursor App mit Postgres: App-Matrix, DB-Bedarf, kompakte Zielstruktur
+
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+
+Zielbild der Repo-Schichten: [`STRUCTURE.md`](STRUCTURE.md)
+
+---
+
 ## 🖥️ Infrastruktur
 
 ```
