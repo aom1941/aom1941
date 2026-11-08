@@ -6,7 +6,6 @@
     "dev": "next dev --turbopack",
     "build": "next build --webpack && node scripts/migrate.mjs",
     "start": "next start",
-    "lint": "next lint",
     "migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
@@ -17,13 +16,10 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^16.4.5",
     "typescript": "^5"
   }
 }
