@@ -51,4 +51,6 @@ Leere Scaffolds (`Aom_1`, `aom-sys-security`) und der Docker-`docs`-Fork gehöre
 3. Bestehende Repos schrittweise verschieben/zusammenlegen, wenn ein Feature sowieso angefasst wird.
 4. Cursor-publish nur für `apps/*` und `hub/apps-atlas`; Agents bleiben MCP/CLI.
 
-Live-Katalog: siehe [`apps-atlas/`](apps-atlas/).
+Live-Katalog: siehe [`apps-atlas/`](apps-atlas/). Seed und Typen:
+[`apps-atlas/src/lib/catalog.ts`](apps-atlas/src/lib/catalog.ts). Die UI liest
+ausschließlich `GET /api/catalog` (optional `?db=yes|maybe|no`).
