@@ -10,6 +10,9 @@ Kopie, die hier bis dahin lag, war seit Mai 2026 vom eigentlichen Stand
 abgewichen und ist entfernt. Sie bleibt in der Git-Historie dieses Repos
 nachlesbar.
 
+Der Architektur-Beschluss vom 19.07.2026 liegt ebenfalls nur noch im privaten
+Repository (`docs/`).
+
 ## Was es kann
 
 - Kursliste als Tagesübersicht: nächster Termin, Belegung, ausgebuchte Kurse,
