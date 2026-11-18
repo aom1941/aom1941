@@ -56,7 +56,7 @@ Antwort:
 
 ```json
 {
-  "stats": { "total": 21, "dbYes": 5, "dbMaybe": 3, "dbNo": 13, "viewer": "…" },
+  "stats": { "total": 21, "dbYes": 7, "dbMaybe": 3, "dbNo": 11, "viewer": "…" },
   "layers": [{ "id": "apps", "title": "apps/", "role": "…", "contents": "…", "sort_order": 10 }],
   "apps": [{ "id": "artisplan", "name": "ArtisPlan", "db_need": "maybe", "…": "…" }]
 }
