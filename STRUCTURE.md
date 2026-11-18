@@ -19,8 +19,8 @@ aom-platform/
 | `apps/companion-os` | `project-companion----visual-computer/project-companion-os` |
 | `apps/ink-os` | `project-companion----visual-computer` (Root React) |
 | `apps/artisplan` | `ArtisPlan` |
-| `apps/pke-werkstatt` | `aom1941/pke-keramikwerkstatt` |
-| `apps/pke-sgraffito` | `aom1941/pke-sgraffito` |
+| `apps/pke-werkstatt` | `pilzkeramik/pke-keramikwerkstatt` (privat; Kopie hier am 18.11.2026 entfernt) |
+| `apps/pke-sgraffito` | im Werkstattboard: `pilzkeramik/pke-keramikwerkstatt` → `frontend/public/tools/sgraffito.html` |
 | `apps/elster-ready` | `…/elster-ready-accounting` |
 | `apps/orchestrator-studio` | `aom-orchestrator-studio` |
 | `apps/ops/*` | `chillops-dashboard`, `account-operator`, `aom-sys-wd-control`, `picas-fingerprint-explorer` |
