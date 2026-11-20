@@ -31,7 +31,7 @@
 | Bereich | Fokus |
 |---|---|
 | `aom-sys-infra-services` | 4-Schichten-IaC für CachyOS-Server (`aom/`, `sys/`, `infra/`, `services/`: Docker, Traefik, Cloudflare Tunnel, Tailscale, Borgmatic, Ollama, Paperless-ngx, Immich, Nextcloud) |
-| `Project-Companion` | Lokaler Assistenten-Stack für Beleg-OCR, GoBD-Archivierung, EÜR/WISO-Steuer-Cockpit, lokales RAG und Desktop-Hub |
+| `aom-ops-companion` | Local-first Ops-Cockpit (`project-companion-os :9999`), Beleg-OCR, GoBD-Archivierung, EÜR/WISO-Steuer-Cockpit und Werkstatt-Adapter |
 | `aom-arc-suite` | Architektur-Werkzeuge (Foto → 3D → BIM-Pipeline, IFC4-Export, HOAI-Rechner, Baugrund-Check, Planindex) |
 | `pilzkeramik/pke-keramikwerkstatt` | Self-hosted Werkstattboard (Kurse, Teilnehmer, Warteliste, sGraffito-Vorlage) |
 
